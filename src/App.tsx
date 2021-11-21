@@ -110,17 +110,6 @@ function App() {
     return newState;
   }
 
-  function handleSliderChange(value: number|number[], thumb: number): stateType {
-    console.log("thumb ", thumb, ": ", value);
-    const newState: stateType = {...state}
-    if (thumb < 0) newState.min = value as number;
-    else {
-      newState.sliderValue = value as number;
-      newState.max = value as number;
-    }
-    return newState;
-  }
-
   function handleMaxButton(event: React.MouseEvent<HTMLElement>, value: number) {
     const newState = handleLimitChange(value, "upper_reset");
     setState(generate(newState));

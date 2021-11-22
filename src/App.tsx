@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './App.css';
-import { Button, Grid, Stack, Typography, Box, IconButton, Checkbox, CssBaseline, TextField, FormControlLabel, FormGroup, SvgIcon } from '@mui/material';
-import { ThemeProvider } from '@mui/system';
+import { Button, Grid, Stack, Typography, Box, IconButton, Checkbox, CssBaseline, TextField, FormControlLabel, FormGroup, SvgIcon, FormControl, InputLabel, NativeSelect, Select } from '@mui/material';
+import { ThemeProvider, typography } from '@mui/system';
 import { theme1 } from './themes';
 import Dice from './dice';
 
@@ -17,6 +17,17 @@ type randomType = {
   max: number,
   time: Date,
   exclusive: boolean,
+}
+
+type saveStateType = {
+  min: number,
+  max: number,
+  exclusive: boolean,
+  zeroBase: boolean,
+}
+
+type saveStateDictType = {
+  [key: string]: saveStateType
 }
 
 type stateType = {
@@ -42,6 +53,12 @@ const initState: stateType = {
   quantity: DEFAULT_QUANTITY,
   newQuantity: DEFAULT_QUANTITY,
 }
+
+const MODES: string[][] = [ 
+    ['default', 'Default'], 
+    ['dice', 'Dice'],
+    ['hex', 'Hex' ]
+]
 
 // generate new randoms numbers to the front of the history list
 function generate(state: stateType, min?: number, max?: number): stateType {
@@ -69,10 +86,13 @@ function generate(state: stateType, min?: number, max?: number): stateType {
   return newState;
 }
 
+const saveStateDictInit: saveStateDictType = {}
 
 function App() {
 
   const [state, setState] = useState(initState)
+  const [mode, setMode] = useState("default")
+  const [prevModeState, setPrevModeState] = useState(saveStateDictInit)
 
   // make sure the limit values are sane, then update state
   function handleLimitChange(value: number, type: "lower"|"upper_reset"|"upper"): stateType {
@@ -131,15 +151,50 @@ function App() {
   }
 
   function DisplayButton(props: any) {
+    const { value } = props
+    const padding: string = mode === 'dice' ? "1em 3em 1em 3em" : "1em 4em 1em 4em"
     return (
-      <Button sx={{height:"10em", padding:"1em 5em 1em 5em"}} 
-          variant="outlined" 
-          onClick={() => setState(generate(state))}>
-        <Typography component="h2" variant="h2">{props.children}</Typography>
+      <Button sx={{height:"10em", padding:padding}} 
+          variant={mode==='dice' ? "text" : "outlined"}
+          onClick={() => setState(generate(state))}>{
+            (mode==='dice' && (value>=1 && value <=6)) 
+            ?
+            <Dice.Die6img die={value} size="5em"/>
+            :
+            <Typography component="h2" variant="h2">{value}</Typography>
+          }
       </Button>
     )
   }
 
+  function handleModeChange(value: string) {
+    console.log("mode change: ", value)
+    console.log(MODES.map(i=>i[0]))
+    if (MODES.find((e)=>e[0]===mode)) {
+      setPrevModeState({...prevModeState, [mode]: {
+        min: state.min,
+        max: state.max,
+        exclusive: state.exclusive,
+        zeroBase: state.zeroBase,
+      }})
+      setMode(value);
+      if (value === 'dice') {
+        setState({...state, min:1, max:6, zeroBase:false, exclusive:false})
+      }
+      else {
+        if (value in prevModeState) {
+          setState({...state, 
+              min:prevModeState[value].min, 
+              max:prevModeState[value].max, 
+              zeroBase:prevModeState[value].zeroBase, 
+              exclusive:prevModeState[value].exclusive
+          })
+        }
+      }
+    }
+  }
+
+  console.log('prev states', prevModeState)
   return (
     <ThemeProvider theme={theme1}>
     <div className="App">
@@ -148,11 +203,10 @@ function App() {
       <Typography component="h1" variant="h5" sx={{textAlign:"center", marginBottom:"0.5em"}}>Rapidly Random Numbers</Typography>
         <Grid container spacing={2}>
           <Grid item xs={12}>
-            { state.randoms.slice(0, state.quantity).map((e:randomType) => (
-              <DisplayButton>{e.value}</DisplayButton>
-            ))}
+            { state.randoms.slice(0, state.quantity).map(
+                (e:randomType) => <DisplayButton value={e.value}/>)}
             { (state.randoms.length !== 0) ? "" : (
-              <DisplayButton>Press Here!</DisplayButton>) }
+              <DisplayButton value="Press Here!" />) }
           <Typography sx={{marginTop: "0.5em"}}><i>[{state.min} to {state.max}{state.exclusive ? ")" : "]"}</i></Typography>
           { (state.randoms.length === 0) ? "" : (<><Typography sx={{fontSize:"50%"}}>{state.lastTime.toString()}</Typography></>) }
           </Grid>
@@ -161,6 +215,7 @@ function App() {
               <Typography noWrap sx={{paddingLeft:"1em", paddingRight:"1em"}}>Previous: {state.randoms.slice(state.quantity,state.quantity+51).map((i) => i.value).join(", ")}</Typography>
             </Grid>
           )}
+          { mode === 'dice' ? "" : (
           <Grid item xs={12}>
             <Stack direction="row" justifyContent="center" spacing={1}>
               <QuickButtons values={[2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 30, 50, 100, 256, 1000, 1000000]}>
@@ -168,32 +223,58 @@ function App() {
               </QuickButtons>
             </Stack>
           </Grid>
+          ) }
           <Grid item xs={12}>
+  
             <Box display="flex" flexDirection="row" flexWrap="wrap" alignItems="center" justifyContent="center">
+
             <TextField type="number" id="set-min" size="small" value={state.min} 
                 label="Lowest" sx={{width:"6em"}}
+                disabled={mode==='dice'?true:false} 
                 onChange={(e) => setState(handleLimitChange(parseInt(e.target.value), "lower"))}
                 InputLabelProps={{shrink: true}} />
             <TextField type="number" id="set-max" size="small" value={state.max} 
                 label="Highest" sx={{width:"6em"}}
+                disabled={mode==='dice'?true:false} 
                 onChange={(e) => setState(handleLimitChange(parseInt(e.target.value), "upper"))}
                 InputLabelProps={{shrink: true}} />
             <TextField type="number" id="set-quantity" size="small" value={state.newQuantity} 
                 label="Quantity" sx={{width:"6em"}}
                 onChange={(e) => {setState({...state, newQuantity:parseInt(e.target.value)||DEFAULT_QUANTITY})}}
                 InputLabelProps={{shrink: true}} />
+
+
+<Select
+native
+            size="small"
+    label="Mode"
+    defaultValue={mode}
+    onChange={(e) => handleModeChange(e.target.value)}
+    inputProps={{
+      name: 'mode',
+      id: 'mode-select',
+    }}
+  >
+    { MODES.map((v) => (<option value={v[0]}>{v[1]}</option>)) }
+  </Select>
+
               <Box sx={{marginLeft:"1em", marginRight:"1em"}}>
-            <FormControlLabel label="Exclusive" control={<Checkbox checked={state.exclusive} onChange={(e) => setState({...state, exclusive:e.target.checked})}></Checkbox>} />
-            <FormControlLabel label="Zero based" control={<Checkbox checked={state.zeroBase} onChange={(e) => setState({...state, zeroBase:e.target.checked, min:e.target.checked?0:DEFAULT_MIN})}></Checkbox>} />
-            <FormControlLabel label="Hex mode" control={<Checkbox disabled></Checkbox>} />
+            <FormControlLabel label="Exclusive" control={
+              <Checkbox checked={state.exclusive} 
+                  disabled={mode==='dice'?true:false} 
+                  onChange={(e) => setState({...state, exclusive:e.target.checked})} 
+              />}
+            />
+            <FormControlLabel label="Zero based" control={
+              <Checkbox checked={state.zeroBase} 
+                  disabled={mode==='dice'?true:false} 
+                  onChange={(e) => setState({...state, zeroBase:e.target.checked, min:e.target.checked?0:DEFAULT_MIN})}
+              />} 
+            />
             </Box>
             </Box>
           </Grid>
         </Grid>        
-        <div style={{width:"4em", height:"4em", border:"2 solid black"}}>
-          <Dice.Die6img die="3" size="3em"/>
-        <Dice.SvgT6Die6 viewBox="0 0 1 1" style={{}}/>
-        </div>
       </header>
     </div>
     </ThemeProvider>

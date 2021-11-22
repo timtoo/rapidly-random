@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import './App.css';
-import { Button, Grid, Slider, Stack, Typography, Box, IconButton, Checkbox, CssBaseline, TextField } from '@mui/material';
-import { ArrowLeft, ArrowRight } from '@mui/icons-material';
+import { Button, Grid, Stack, Typography, Box, IconButton, Checkbox, CssBaseline, TextField, FormControlLabel, FormGroup, SvgIcon } from '@mui/material';
 import { ThemeProvider } from '@mui/system';
 import { theme1 } from './themes';
+import Dice from './dice';
 
 const DEFAULT_QUANTITY: number = 1
 const DEFAULT_MIN: number = 1;
@@ -22,7 +22,6 @@ type randomType = {
 type stateType = {
   min: number,
   max: number,
-  sliderValue: number,
   exclusive: boolean,
   zeroBase: boolean,
   randoms: randomType[],
@@ -35,7 +34,6 @@ type stateType = {
 const initState: stateType = {
   min: DEFAULT_MIN,
   max: DEFAULT_MAX,
-  sliderValue: DEFAULT_MAX,
   exclusive: false,
   zeroBase: false,
   randoms: [],
@@ -68,7 +66,6 @@ function generate(state: stateType, min?: number, max?: number): stateType {
   }
 
   newState.lastTime = newState.randoms[0].time;
-  newState.sliderValue = max;
   return newState;
 }
 
@@ -143,7 +140,6 @@ function App() {
     )
   }
 
-  console.log("slider render", state)
   return (
     <ThemeProvider theme={theme1}>
     <div className="App">
@@ -157,39 +153,23 @@ function App() {
             ))}
             { (state.randoms.length !== 0) ? "" : (
               <DisplayButton>Press Here!</DisplayButton>) }
-          <Typography sx={{marginTop: "0.5em"}}><i>{state.min} to {state.max} (inclusive)</i></Typography>
+          <Typography sx={{marginTop: "0.5em"}}><i>[{state.min} to {state.max}{state.exclusive ? ")" : "]"}</i></Typography>
           { (state.randoms.length === 0) ? "" : (<><Typography sx={{fontSize:"50%"}}>{state.lastTime.toString()}</Typography></>) }
           </Grid>
           { (state.randoms.length <= state.quantity) ? "" : (
             <Grid item xs={12}>
-              <Typography>Previous: {state.randoms.slice(state.quantity,state.quantity+11).map((i) => i.value).join(", ")}</Typography>
+              <Typography noWrap sx={{paddingLeft:"1em", paddingRight:"1em"}}>Previous: {state.randoms.slice(state.quantity,state.quantity+51).map((i) => i.value).join(", ")}</Typography>
             </Grid>
           )}
           <Grid item xs={12}>
             <Stack direction="row" justifyContent="center" spacing={1}>
-              <QuickButtons values={[2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 30, 50, 100, 256, 1000, 10000, 100000, 1000000]}>
+              <QuickButtons values={[2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 30, 50, 100, 256, 1000, 1000000]}>
                 Highest Number:
               </QuickButtons>
             </Stack>
           </Grid>
           <Grid item xs={12}>
-              <Stack direction="row" justifyContent="center">
-                <IconButton sx={{marginTop:-0.5}} aria-label="decrease highest number" disabled={state.sliderValue <= state.min} onClick={(e) => setState(handleSliderChange(state.sliderValue-1, 0))}><ArrowLeft/></IconButton>
-            <Slider marks={false} disableSwap
-                sx={{width:"50%"}}
-                min={2} 
-                max={100}
-                value={state.sliderValue}
-                valueLabelDisplay="auto"
-                onChange={(e,v,t) => setState(handleSliderChange(v, t))}/>
-                <IconButton sx={{marginTop:-0.5}} aria-label="increase highest number" disabled={state.sliderValue >= 100} onClick={(e) => setState(handleSliderChange(state.sliderValue+1, 0))}><ArrowRight/></IconButton>
-            </Stack>
-          </Grid>
-          <Grid item xs={12}>
-            <Checkbox></Checkbox>
-
-          </Grid>
-          <Grid item xs={12}>
+            <Box display="flex" flexDirection="row" flexWrap="wrap" alignItems="center" justifyContent="center">
             <TextField type="number" id="set-min" size="small" value={state.min} 
                 label="Lowest" sx={{width:"6em"}}
                 onChange={(e) => setState(handleLimitChange(parseInt(e.target.value), "lower"))}
@@ -202,8 +182,18 @@ function App() {
                 label="Quantity" sx={{width:"6em"}}
                 onChange={(e) => {setState({...state, newQuantity:parseInt(e.target.value)||DEFAULT_QUANTITY})}}
                 InputLabelProps={{shrink: true}} />
+              <Box sx={{marginLeft:"1em", marginRight:"1em"}}>
+            <FormControlLabel label="Exclusive" control={<Checkbox checked={state.exclusive} onChange={(e) => setState({...state, exclusive:e.target.checked})}></Checkbox>} />
+            <FormControlLabel label="Zero based" control={<Checkbox checked={state.zeroBase} onChange={(e) => setState({...state, zeroBase:e.target.checked, min:e.target.checked?0:DEFAULT_MIN})}></Checkbox>} />
+            <FormControlLabel label="Hex mode" control={<Checkbox disabled></Checkbox>} />
+            </Box>
+            </Box>
           </Grid>
-        </Grid>
+        </Grid>        
+        <div style={{width:"4em", height:"4em", border:"2 solid black"}}>
+          <Dice.Die6img die="3" size="3em"/>
+        <Dice.SvgT6Die6 viewBox="0 0 1 1" style={{}}/>
+        </div>
       </header>
     </div>
     </ThemeProvider>

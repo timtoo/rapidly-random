@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './App.css';
-import { Button, Grid, Stack, Typography, Box, IconButton, Checkbox, CssBaseline, TextField, FormControlLabel, FormGroup, SvgIcon, FormControl, InputLabel, NativeSelect, Select } from '@mui/material';
+import { Button, Grid, Stack, Typography, Box, IconButton, Checkbox, CssBaseline, TextField, FormControlLabel, FormGroup, SvgIcon, FormControl, InputLabel, NativeSelect, Select, Grow } from '@mui/material';
 import { ThemeProvider, typography } from '@mui/system';
 import { theme1 } from './themes';
 import Dice from './dice';
@@ -159,6 +159,7 @@ function App() {
     const padding: string = mode === 'dice' ? "1em 3em 1em 3em" : "1em 4em 1em 4em"
 
     return (
+      <Grow in={true}>
       <Button sx={{height:"10em", padding:padding}} 
           variant={mode==='dice' ? "text" : "outlined"}
           onClick={() => setState(generate(state))}>{
@@ -169,6 +170,7 @@ function App() {
             <Typography component="h2" variant="h2">{mode==='hex' ? value.toString(16) : value}</Typography>
           }
       </Button>
+      </Grow>
     )
   }
 

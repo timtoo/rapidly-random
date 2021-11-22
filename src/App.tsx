@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import './App.css';
-import { Button, Grid, Stack, Typography, Box, IconButton, Checkbox, CssBaseline, TextField, FormControlLabel, FormGroup, SvgIcon, FormControl, InputLabel, NativeSelect, Select, Grow } from '@mui/material';
+import { Button, Grid, Stack, Typography, Box, IconButton, Checkbox, CssBaseline, TextField, FormControlLabel, FormGroup, SvgIcon, FormControl, InputLabel, NativeSelect, Select, Grow, Tooltip } from '@mui/material';
 import { ThemeProvider, typography } from '@mui/system';
 import { theme1 } from './themes';
 import Dice from './dice';
+import { useLongPress } from 'use-long-press';
+import { InfoOutlined } from '@mui/icons-material';
 
 const DEFAULT_QUANTITY: number = 1
 const DEFAULT_MIN: number = 1;
@@ -155,21 +157,40 @@ function App() {
   }
 
   function DisplayButton(props: any): JSX.Element {
-    const { value } = props
-    const padding: string = mode === 'dice' ? "1em 3em 1em 3em" : "1em 4em 1em 4em"
+    const [ttopen, setTtopen] = useState(false);
+    const { value, index } = props
+    const padding: string = (mode === 'dice') ? "1em 3em 1em 3em" : "1em 4em 1em 4em"
+    const displayValue: string = (mode==='hex') ? value.toString(16) : value
+    const bind = useLongPress((e, v=displayValue) => {
+      setTtopen(true);
+      navigator.clipboard.writeText(displayValue)
+    }, {captureEvent: true,
+        threshold: 500,
+        onCancel: () => setState(generate(state)),
+        onFinish: () => setTimeout(() => setTtopen(false), 1500)
+    });
+
 
     return (
       <Grow in={true}>
-      <Button sx={{height:"10em", padding:padding}} 
+      <Tooltip arrow
+                disableFocusListener
+                disableHoverListener
+                disableTouchListener
+                title="Copied to clipboard!"
+                open={ttopen}>
+      <Button id={`rr${index}:${displayValue}`}
+          sx={{height:"10em", padding:padding}} 
           variant={mode==='dice' ? "text" : "outlined"}
-          onClick={() => setState(generate(state))}>{
+          {...bind}>{
             (mode==='dice' && (value>=1 && value <=6)) 
             ?
-            <Dice.Die6img die={value} size="5em"/>
+            <Dice.Die6img die={value} size="5em" style={{transform:"rotate("+(Math.random()*360)+"deg)"}}/>
             :
-            <Typography component="h2" variant="h2">{mode==='hex' ? value.toString(16) : value}</Typography>
+            <Typography component="h2" variant="h2">{displayValue}</Typography>
           }
       </Button>
+      </Tooltip>
       </Grow>
     )
   }
@@ -190,7 +211,9 @@ function App() {
 
       if (value === 'dice') {
         // nothing else makes sense for dice
-        setState({...state, min:1, max:6, zeroBase:false, exclusive:false})
+        const newState: stateType = {...state, min:1, max:6, zeroBase:false, exclusive:false}
+        setState(newState)
+        generate(newState)
       }
       else {
         // restore previous mode settings so one can go back quickly
@@ -210,7 +233,6 @@ function App() {
     }
   }
 
-  console.log('prev states', prevModeState)
   return (
     <ThemeProvider theme={theme1}>
     <div className="App">
@@ -220,7 +242,7 @@ function App() {
         <Grid container spacing={2}>
           <Grid item xs={12}>
             { state.randoms.slice(0, state.quantity).map(
-                (e:randomType) => <DisplayButton value={e.value}/>)}
+                (e:randomType, i) => <DisplayButton value={e.value} index={i}/>)}
             { (state.randoms.length !== 0) ? "" : (
               <DisplayButton value="Press Here!" />) }
           <Typography sx={{marginTop: "0.5em"}}><i>[{state.min} to {state.max}{state.exclusive ? ")" : "]"}</i></Typography>
@@ -228,7 +250,7 @@ function App() {
           </Grid>
           { (state.randoms.length <= state.quantity) ? "" : (
             <Grid item xs={12}>
-              <Typography noWrap sx={{paddingLeft:"1em", paddingRight:"1em"}}>Previous: {state.randoms.slice(state.quantity,state.quantity+51).map((i) => i.value).join(", ")}</Typography>
+              <Typography noWrap color="secondary" sx={{paddingLeft:"1em", paddingRight:"1em"}}>Previous: <i>{state.randoms.slice(state.quantity,state.quantity+51).map((i) => i.value).join(", ")}</i></Typography>
             </Grid>
           )}
           { mode === 'dice' ? "" : (
@@ -288,7 +310,21 @@ native
             </Box>
             </Box>
           </Grid>
-        </Grid>        
+        </Grid>   
+        <br/><br/>
+        <Tooltip placement="top"
+          title={<>
+            <b>Tips!</b>
+            <ul>
+              <li>Click/tap any number for <b>new number(s)</b></li>
+              <li>Long press (click and hold) any number to copy to <b>clipboard</b></li>
+              <li>Use hex mode 16777216 button for random HTML colour codes</li>
+              <li>Use five dice to play Yahtzee?</li>
+            </ul>
+            Use your randomness for good.
+          </>}>
+        <InfoOutlined color="secondary" fontSize="small"/>     
+        </Tooltip>
       </header>
     </div>
     </ThemeProvider>

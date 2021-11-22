@@ -280,8 +280,6 @@ function SvgT6Die6(props) {
 }
 
 export default {
-  D3a,
-  D3s,
   Die6img,
  // rt6die3,
   t6die1,

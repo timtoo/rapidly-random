@@ -137,10 +137,14 @@ function App() {
     values: number[]
   }
   
-  function QuickButtons({values, children}: QuickButtonProps): JSX.Element {
+  function QuickButtons(props: {label: string}): JSX.Element {
+    let values: number[] = [2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 30, 50, 100, 256, 1000, 1000000];
+    if (mode==='hex') 
+      values = [16,32,64,128,256,1024,2048,4096,9182,65536,1048576,16777216]
+
     return (
       <>
-      <Typography>{children}</Typography>
+      <Typography>{props.label}</Typography>
       <Box sx={{display: "flex", flexDirection: "row", flexWrap: "wrap"}}>
         {values.map((v) => (
         <Button key={v} variant="contained" sx={{margin:"1px"}} onClick={(e) => handleMaxButton(e, v)}
@@ -150,9 +154,10 @@ function App() {
     );
   }
 
-  function DisplayButton(props: any) {
+  function DisplayButton(props: any): JSX.Element {
     const { value } = props
     const padding: string = mode === 'dice' ? "1em 3em 1em 3em" : "1em 4em 1em 4em"
+
     return (
       <Button sx={{height:"10em", padding:padding}} 
           variant={mode==='dice' ? "text" : "outlined"}
@@ -161,7 +166,7 @@ function App() {
             ?
             <Dice.Die6img die={value} size="5em"/>
             :
-            <Typography component="h2" variant="h2">{value}</Typography>
+            <Typography component="h2" variant="h2">{mode==='hex' ? value.toString(16) : value}</Typography>
           }
       </Button>
     )
@@ -170,6 +175,8 @@ function App() {
   function handleModeChange(value: string) {
     console.log("mode change: ", value)
     console.log(MODES.map(i=>i[0]))
+    
+    // store previous mode settings
     if (MODES.find((e)=>e[0]===mode)) {
       setPrevModeState({...prevModeState, [mode]: {
         min: state.min,
@@ -178,10 +185,13 @@ function App() {
         zeroBase: state.zeroBase,
       }})
       setMode(value);
+
       if (value === 'dice') {
+        // nothing else makes sense for dice
         setState({...state, min:1, max:6, zeroBase:false, exclusive:false})
       }
       else {
+        // restore previous mode settings so one can go back quickly
         if (value in prevModeState) {
           setState({...state, 
               min:prevModeState[value].min, 
@@ -189,6 +199,10 @@ function App() {
               zeroBase:prevModeState[value].zeroBase, 
               exclusive:prevModeState[value].exclusive
           })
+        }
+        // set these defaults if mode not already saved
+        else if (value === 'hex') {
+          setState({...state, min: 0, max: 256, zeroBase:true, exclusive:true})
         }
       }
     }
@@ -218,9 +232,7 @@ function App() {
           { mode === 'dice' ? "" : (
           <Grid item xs={12}>
             <Stack direction="row" justifyContent="center" spacing={1}>
-              <QuickButtons values={[2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 30, 50, 100, 256, 1000, 1000000]}>
-                Highest Number:
-              </QuickButtons>
+              <QuickButtons label="Highest Number:" />
             </Stack>
           </Grid>
           ) }

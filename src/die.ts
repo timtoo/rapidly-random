@@ -82,7 +82,9 @@ class Die {
                 rolls=DEFAULT_ROLLS, 
                 mod=DEFAULT_MOD, 
                 mult=DEFAULT_MULT, 
-                repeat=DEFAULT_REPEAT
+                repeat=DEFAULT_REPEAT,
+                exclusive=false,
+                zerobase=false,
                 ) {
         this.min = DEFAULT_MIN // default minimum allowed
         this.max = max; // sides of dice
@@ -91,8 +93,8 @@ class Die {
         this.mult = mult; // multiplier (decimal to divide)
         this.repeat = repeat; // how many times to roll the above
 
-        this.zerobase = false; // zero is lowest instead of one
-        this.exclusive = false; // subtract 1 from highest dice number
+        this.zerobase = zerobase; // zero is lowest instead of one
+        this.exclusive = exclusive; // subtract 1 from highest dice number
 
         this.parsedText = '';
 

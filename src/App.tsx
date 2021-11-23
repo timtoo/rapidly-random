@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import './App.css';
 import { Button, Grid, Stack, Typography, Box, IconButton, Checkbox, CssBaseline, TextField, FormControlLabel, FormGroup, SvgIcon, FormControl, InputLabel, NativeSelect, Select, Grow, Tooltip } from '@mui/material';
-import { ThemeProvider, typography } from '@mui/system';
+import { ThemeProvider } from '@mui/system';
 import { theme1 } from './themes';
 import Dice from './dicesvg';
 import { useLongPress } from 'use-long-press';
 import { InfoOutlined } from '@mui/icons-material';
+import { Die } from './die';
 
 const DEFAULT_QUANTITY: number = 1
 const DEFAULT_MIN: number = 1;
@@ -39,7 +40,7 @@ type stateType = {
   zeroBase: boolean,
   randoms: randomType[],
   lastTime: Date,
-  previousRange: number[][],
+  previousRange: string[],
   quantity: number,
   newQuantity: number,
 }
@@ -83,6 +84,13 @@ function generate(state: stateType, min?: number, max?: number): stateType {
     })
     if (newState.randoms.length > MAX_HISTORY) newState.randoms.pop();
   }
+
+  const d = new Die(min, max, newState.quantity, 0, 1, 1, newState.exclusive, newState.zeroBase);
+  const dn = d.toString()
+  const dni = newState.previousRange.indexOf(dn)
+  if (dni>=0) newState.previousRange.splice(dni,1)
+  newState.previousRange.unshift(dn)
+  console.log(d.toString())
 
   newState.lastTime = newState.randoms[0].time;
   return newState;
@@ -151,6 +159,38 @@ function App() {
     );
   }
 
+  function newDieState(die: Die): stateType {
+    return {
+          ...state,  
+          min:die.min+die.mod, 
+          max:die.max+die.mod, 
+          quantity:die.rolls, 
+          zeroBase:die.zerobase, 
+          exclusive:die.exclusive
+    }
+  }
+
+  function handleHistButton(event: React.MouseEvent<HTMLElement>, value: string) {
+    const die = new Die(value);
+    setState(generate(newDieState(die)));
+  }
+  
+  function HistoryButtons(props: {label: string, values: string[]}): JSX.Element {
+    const {label, values} = props
+
+    return (
+      <>
+      <Typography>{label}</Typography>
+      <Box sx={{display: "flex", flexDirection: "row", flexWrap: "wrap"}}>
+        {values.map((v) => (
+        <Button key={v} variant="contained" sx={{margin:"1px", textTransform:"none"}} onClick={(e) => handleHistButton(e, v)}
+            size="small" color={"secondary"}>{v}</Button>))}
+      </Box>
+    </>
+    );
+  }
+
+  
   function DisplayButton(props: any): JSX.Element {
     const [ttopen, setTtopen] = useState(false);
     const { value, index } = props
@@ -236,6 +276,7 @@ function App() {
       <header className="App-header">
       <Typography component="h1" variant="h5" sx={{textAlign:"center", marginBottom:"0.5em"}}>Rapidly Random Numbers</Typography>
         <Grid container spacing={2}>
+
           <Grid item xs={12}>
             { state.randoms.slice(0, state.quantity).map(
                 (e:randomType, i) => <DisplayButton value={e.value} index={i}/>)}
@@ -244,11 +285,13 @@ function App() {
           <Typography sx={{marginTop: "0.5em"}}><i>[{state.min} to {state.max}{state.exclusive ? ")" : "]"}</i></Typography>
           { (state.randoms.length === 0) ? "" : (<><Typography sx={{fontSize:"50%"}}>{state.lastTime.toString()}</Typography></>) }
           </Grid>
+
           { (state.randoms.length <= state.quantity) ? "" : (
             <Grid item xs={12}>
               <Typography noWrap color="secondary" sx={{paddingLeft:"1em", paddingRight:"1em"}}>Previous: <i>{state.randoms.slice(state.quantity,state.quantity+51).map((i) => i.value).join(", ")}</i></Typography>
             </Grid>
           )}
+
           { mode === 'dice' ? "" : (
           <Grid item xs={12}>
             <Stack direction="row" justifyContent="center" spacing={1}>
@@ -256,6 +299,7 @@ function App() {
             </Stack>
           </Grid>
           ) }
+
           <Grid item xs={12}>
   
             <Box display="flex" flexDirection="row" flexWrap="wrap" alignItems="center" justifyContent="center">
@@ -306,7 +350,16 @@ native
             </Box>
             </Box>
           </Grid>
+
+          { (state.previousRange.length <= 0) ? "" : (
+            <Grid item xs={12}>
+            <Stack direction="row" justifyContent="center" spacing={1}>
+              <HistoryButtons label="History:" values={state.previousRange}/>
+            </Stack>
+            </Grid>
+          )}
         </Grid>   
+
         <br/><br/>
         <Tooltip placement="top"
           title={<>

@@ -3,7 +3,7 @@ import './App.css';
 import { Button, Grid, Stack, Typography, Box, IconButton, Checkbox, CssBaseline, TextField, FormControlLabel, FormGroup, SvgIcon, FormControl, InputLabel, NativeSelect, Select, Grow, Tooltip } from '@mui/material';
 import { ThemeProvider, typography } from '@mui/system';
 import { theme1 } from './themes';
-import Dice from './dice';
+import Dice from './dicesvg';
 import { useLongPress } from 'use-long-press';
 import { InfoOutlined } from '@mui/icons-material';
 
@@ -57,7 +57,7 @@ const initState: stateType = {
 }
 
 const MODES: string[][] = [ 
-    ['default', 'Default'], 
+    ['default', 'Normal'], 
     ['dice', 'Dice'],
     ['hex', 'Hex' ]
 ]
@@ -133,11 +133,6 @@ function App() {
     const newState = handleLimitChange(value, "upper_reset");
     setState(generate(newState));
   }
-
-  type QuickButtonProps = {
-    children: React.ReactNode,
-    values: number[]
-  }
   
   function QuickButtons(props: {label: string}): JSX.Element {
     let values: number[] = [2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 30, 50, 100, 256, 1000, 1000000];
@@ -162,6 +157,7 @@ function App() {
     const padding: string = (mode === 'dice') ? "1em 3em 1em 3em" : "1em 4em 1em 4em"
     const displayValue: string = (mode==='hex') ? value.toString(16) : value
     const bind = useLongPress((e, v=displayValue) => {
+      e?.preventDefault()
       setTtopen(true);
       navigator.clipboard.writeText(displayValue)
     }, {captureEvent: true,

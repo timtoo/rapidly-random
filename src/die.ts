@@ -61,7 +61,7 @@ const DEFAULT_REPEAT:number = 1;
 const MULTIPY_CHARS:string = "x×*";
 const DIVIDE_CHARS:string = "/÷";
 
-const DieRegExp = new RegExp(`\\b((?<repeat>\\d+)[${MULTIPY_CHARS}]\\(?)?(?<rolls>\\d*)[dD](?<max>-?\\d*)(>(?<min>-?\\d+)<)?((?<mult>[${MULTIPY_CHARS}${DIVIDE_CHARS}]\\d+)(?<mod>[+-]\\d+)|(?<mod1>[+-]\\d+)(?<mult1>[${MULTIPY_CHARS}${DIVIDE_CHARS}]\\d+)|(?<mod2>[+-]\\d+)|(?<mult2>[${MULTIPY_CHARS}${DIVIDE_CHARS}]\\d+))?(?<flag1>[xXzZ])?(?<flag2>[xXzZ])?\\b`);
+const DieRegExp = new RegExp(`\\b((?<repeat>\\d+)[${MULTIPY_CHARS}]\\(?)?(?<rolls>\\d*)[dD](?<max>-?\\d*)(\>(?<min>-?\\d+))?((?<mult>[${MULTIPY_CHARS}${DIVIDE_CHARS}]\\d+)(?<mod>[+-]\\d+)|(?<mod1>[+-]\\d+)(?<mult1>[${MULTIPY_CHARS}${DIVIDE_CHARS}]\\d+)|(?<mod2>[+-]\\d+)|(?<mult2>[${MULTIPY_CHARS}${DIVIDE_CHARS}]\\d+))?(?<flag1>[xXzZ])?(?<flag2>[xXzZ])?\\b`);
 
 
 class Die {
@@ -159,6 +159,11 @@ class Die {
     toString(compact=false): string {
         let value = `${this.rolls}d${this.max}`
 
+	//if (this.min !== 1) value += ">" + this.min;
+	//if (this.min !== 1 || (this.min === 0 && (! this.zerobase))) value += ">" + this.min;
+	if (this.min !== 1) {
+		if (!(this.min === 0 && this.zerobase)) value += ">" + this.min;
+	}
         if (this.mult>1) value += 'x' + this.mult
         if (this.mult>0 && this.mult<1) value += '/' + Math.round(1/this.mult)
 
@@ -171,6 +176,9 @@ class Die {
             if (this.max === 6) value = value.replace('d6', 'd');
             if (this.rolls === 1) value = value.replace('1d', 'd');
         }
+
+	if (this.exclusive) value += 'x';
+	if (this.min === 0 && this.zerobase) value += 'z';
 
         return value
     }
@@ -185,7 +193,7 @@ class Die {
             this.rolls = match.groups?.rolls ? +match.groups.rolls : DEFAULT_ROLLS;
             this.mod = +(match.groups?.mod2 || match.groups?.mod1 || match.groups?.mod || DEFAULT_MOD);
             this.max = match.groups?.max ? +match.groups.max : DEFAULT_MAX;
-            this.min = match.groups?.min ? +match.groups.min : DEFAULT_MAX;
+            this.min = match.groups?.min ? +match.groups.min : DEFAULT_MIN;
 
             if (this.min > this.max) [this.min, this.max] = [this.max, this.min]
 
@@ -220,38 +228,40 @@ class Die {
 }
 
 const test_dice: { [key: string]: Die} = {
-        'd': new Die(),
-        'd6': new Die(),
-        '1d6': new Die(),
-        '2d6': new Die(6,2),
-        '5d20': new Die(20,5),
-        '3d12': new Die(12,3),
-        '3d12+4': new Die(12,3,4),
-        '3d12-5': new Die(12,3,-5),
-        '4d8x3': new Die(8,4,0,3),
-        'd8/2': new Die(8,1,0,0.5),
-        'd/3': new Die(6,1,0,0.3333333333),
-        '10d100/4+5': new Die(100,10,5,0.25),
+        'd': 		new Die(),
+        'd6': 		new Die(),
+        '1d6': 		new Die(),
+        '2d6': 		new Die(6,2),
+        '5d20': 	new Die(20,5),
+        '3d12': 	new Die(12,3),
+        '3d12+4': 	new Die(12,3,4),
+        '3d12-5': 	new Die(12,3,-5),
+        '4d8x3': 	new Die(8,4,0,3),
+        'd8/2': 	new Die(8,1,0,0.5),
+        'd/3': 		new Die(6,1,0,0.3333333333),
+        '10d100/4+5': 	new Die(100,10,5,0.25),
         '4x(10d100/4+5)': new Die(100,10,5,0.25,4),
         '4x(10d100+5/4)': new Die(100,10,5,0.25,4), // wrong, but we got it
-        '3xd': new Die(6,1,0,1,3),
-        '1d6>2': new Die(),
-        '1d5>0': new Die(),
-        '1d6>0x': new Die(),
-        '1d6xz': new Die(),
-        '1d6>1z': new Die(),
-        '1d6>3': new Die(),
-        'd12>8-4': new Die(),
-        'd>2': new Die(),
+        '3xd':	 	new Die(6,1,0,1,3),
+        '1d6>2': 	new Die(),
+        '1d5>0': 	new Die(),
+        '1d6>0x': 	new Die(),
+        '1d6xz': 	new Die(),
+        '1d6>1z': 	new Die(),
+        '1d6>3': 	new Die(),
+        'd12>8-4': 	new Die(),
+        'd>2': 		new Die(),
+        'd-6>10': 		new Die(),
+        'd-6>-10': 		new Die(),
 }
 
 function testdie(): void {
 
     for (let ds in test_dice) {
-        console.log(JSON.stringify(test_dice[ds]))
-        console.log(ds, '=', test_dice[ds].toString() )
-        console.log(JSON.stringify(new Die().parse(ds)))
-        console.log("")
+	    let d = new Die(ds);
+            console.log(ds, '=', d.toString() )
+            console.log(JSON.stringify(d))
+            console.log("")
     }
 }
 

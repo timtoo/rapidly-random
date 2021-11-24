@@ -52,8 +52,8 @@ single letter. There may be multiple flags, or no flags.
 
 The flags are:
 
-- exclusive mode: x
-- zero based mode: z 
+- exclusive mode: `x`
+- zero based mode: `z` 
 
 *Exclusive mode* means the upper bound (die number) is one more than the highest
 possible number. *Zero based* means we start counting at zero rather than one.

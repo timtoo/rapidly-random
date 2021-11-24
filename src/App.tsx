@@ -314,7 +314,7 @@ native
       id: 'mode-select',
     }}
   >
-    { MODES.map((v) => (<option value={v[0]}>{v[1]}</option>)) }
+    { MODES.map((v, i) => (<option key={i} value={v[0]}>{v[1]}</option>)) }
   </Select>
 
               <Box sx={{marginLeft:"1em", marginRight:"1em"}}>

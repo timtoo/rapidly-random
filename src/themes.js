@@ -1,12 +1,7 @@
 // theme.js
 import { createTheme, responsiveFontSizes } from "@mui/material/styles";
 
-import red from "@mui/material/colors/red";
-import orange from "@mui/material/colors/orange";
-import yellow from "@mui/material/colors/yellow";
-import green from "@mui/material/colors/green";
-import lightBlue from "@mui/material/colors/lightBlue";
-import grey from "@mui/material/colors/grey";
+import { red, orange, yellow, green, lightBlue, grey } from "@mui/material/colors";
 
 //import { ThemeOptions } from '@material-ui/core/styles/createMuiTheme';
 

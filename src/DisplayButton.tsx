@@ -31,8 +31,8 @@ export default function DisplayButton(props: DisplayCardProps): JSX.Element {
     }
   );
 
-  const theme = useTheme();
-  console.log("***theme***", theme);
+  //const theme = useTheme();
+  //console.log("***theme***", theme);
 
   return (
     <Grow in={true}>

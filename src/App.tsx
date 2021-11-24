@@ -1,12 +1,17 @@
-import React, { useState } from 'react';
+import React, { createRef, useRef, useState } from 'react';
 import './App.css';
-import { Button, Grid, Stack, Typography, Box, IconButton, Checkbox, CssBaseline, TextField, FormControlLabel, FormGroup, SvgIcon, FormControl, InputLabel, NativeSelect, Select, Grow, Tooltip } from '@mui/material';
+import { Button, Grid, Stack, Typography, Box, IconButton, Checkbox, CssBaseline, TextField, FormControlLabel, FormGroup, SvgIcon, FormControl, InputLabel, NativeSelect, Select, Grow, Tooltip, Chip } from '@mui/material';
 import { ThemeProvider } from '@mui/system';
 import { theme1 } from './themes';
 import Dice from './dicesvg';
 import { useLongPress } from 'use-long-press';
-import { InfoOutlined } from '@mui/icons-material';
+import { Computer, InfoOutlined } from '@mui/icons-material';
 import { Die } from './die';
+import DisplayCard from './DisplayCard';
+import DisplayButton from './DisplayButton';
+import { useTheme } from '@emotion/react';
+import ConsoleDialog from './ConsoleDialog';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 const DEFAULT_QUANTITY: number = 1
 const DEFAULT_MIN: number = 1;
@@ -100,9 +105,21 @@ const saveStateDictInit: saveStateDictType = {}
 
 function App() {
 
-  const [state, setState] = useState(initState)
-  const [mode, setMode] = useState("default")
-  const [prevModeState, setPrevModeState] = useState(saveStateDictInit)
+  const [state, setState] = useState(initState);
+  const [mode, setMode] = useState("default");
+  const [prevModeState, setPrevModeState] = useState(saveStateDictInit);
+  const [ttopen, setttopen] = useState(false);
+  const [consoleState, setConsoleState] = useState(false);
+  const consoleInputRef = useRef<HTMLInputElement | null>(null);
+
+  useHotkeys('`', () => setConsoleState(!consoleState));
+// this is causing state update loop with the input field
+//  useHotkeys('up', () => setState({...state, newQuantity: state.newQuantity+1}));
+//  useHotkeys('down', () => setState({...state, newQuantity: state.newQuantity-1}));
+  useHotkeys('h', () => handleModeChange("hex"));
+  useHotkeys('d', () => handleModeChange("dice"));
+  useHotkeys('n', () => handleModeChange("normal"));
+  useHotkeys('enter', () => setState(generate(state)));
 
   // make sure the limit values are sane, then update state
   function handleLimitChange(value: number, type: "lower"|"upper_reset"|"upper"): stateType {
@@ -164,7 +181,7 @@ function App() {
           ...state,  
           min:die.min+die.mod, 
           max:die.max+die.mod, 
-          quantity:die.rolls, 
+          quantity:die.dice, 
           zeroBase:die.zerobase, 
           exclusive:die.exclusive
     }
@@ -190,47 +207,12 @@ function App() {
     );
   }
 
-  
-  function DisplayButton(props: any): JSX.Element {
-    const [ttopen, setTtopen] = useState(false);
-    const { value, index } = props
-    const padding: string = (mode === 'dice') ? "1em 3em 1em 3em" : "1em 4em 1em 4em"
-    const displayValue: string = (mode==='hex') ? value.toString(16) : value
-    const bind = useLongPress((e, v=displayValue) => {
-      e?.preventDefault()
-      setTtopen(true);
-      navigator.clipboard.writeText(displayValue)
-    }, {captureEvent: true,
-        threshold: 500,
-        onCancel: () => setState(generate(state)),
-        onFinish: () => setTimeout(() => setTtopen(false), 1500)
-    });
-
-
-    return (
-      <Grow in={true}>
-      <Tooltip arrow
-                disableFocusListener
-                disableHoverListener
-                disableTouchListener
-                title="Copied to clipboard!"
-                open={ttopen}>
-      <Button id={`rr${index}:${displayValue}`}
-          sx={{height:"10em", padding:padding}} 
-          variant={mode==='dice' ? "text" : "outlined"}
-          {...bind}>{
-            (mode==='dice' && (value>=1 && value <=6)) 
-            ?
-            <Dice.Die6img die={value} size="5em" style={{transform:"rotate("+(Math.random()*360)+"deg)"}}/>
-            :
-            <Typography component="h2" variant="h2">{displayValue}</Typography>
-          }
-      </Button>
-      </Tooltip>
-      </Grow>
-    )
+  function setGenerateState() {
+    console.log('set-generate-state')
+    setState(generate(state))
   }
-
+  
+  
   function handleModeChange(value: string) {
     console.log("mode change: ", value)
     console.log(MODES.map(i=>i[0]))
@@ -273,16 +255,17 @@ function App() {
     <ThemeProvider theme={theme1}>
     <div className="App">
       <CssBaseline/>
+      <ConsoleDialog state={consoleState} setState={setConsoleState} inputRef={consoleInputRef} />
       <header className="App-header">
       <Typography component="h1" variant="h5" sx={{textAlign:"center", marginBottom:"0.5em"}}>Rapidly Random Numbers</Typography>
         <Grid container spacing={2}>
 
           <Grid item xs={12}>
             { state.randoms.slice(0, state.quantity).map(
-                (e:randomType, i) => <DisplayButton value={e.value} index={i}/>)}
+                (e:randomType, i) => <DisplayButton value={e.value} index={i} mode={mode} clickHandler={setGenerateState} />)}
             { (state.randoms.length !== 0) ? "" : (
-              <DisplayButton value="Press Here!" />) }
-          <Typography sx={{marginTop: "0.5em"}}><i>[{state.min} to {state.max}{state.exclusive ? ")" : "]"}</i></Typography>
+              <DisplayButton value="Press Here!" index={0} mode="info" clickHandler={setGenerateState} />) }
+          <Typography color="text.secondary" sx={{marginTop: "0.5em"}}><i>[{state.min} to {state.max}{state.exclusive ? ")" : "]"}</i></Typography>
           { (state.randoms.length === 0) ? "" : (<><Typography sx={{fontSize:"50%"}}>{state.lastTime.toString()}</Typography></>) }
           </Grid>
 
@@ -347,6 +330,7 @@ native
                   onChange={(e) => setState({...state, zeroBase:e.target.checked, min:e.target.checked?0:DEFAULT_MIN})}
               />} 
             />
+
             </Box>
             </Box>
           </Grid>
@@ -361,7 +345,8 @@ native
         </Grid>   
 
         <br/><br/>
-        <Tooltip placement="top"
+        <IconButton onClick={() => setttopen(!ttopen)}>
+        <Tooltip placement="top" open={ttopen}
           title={<>
             <b>Tips!</b>
             <ul>
@@ -369,15 +354,19 @@ native
               <li>Long press (click and hold) any number to copy to <b>clipboard</b></li>
               <li>Use hex mode 16777216 button for random HTML colour codes</li>
               <li>Use five dice to play Yahtzee?</li>
+              <li>` for console. Is that crazy?</li> 
             </ul>
             Use your randomness for good.
           </>}>
-        <InfoOutlined color="secondary" fontSize="small"/>     
+        <InfoOutlined  color="secondary" fontSize="small"/>     
         </Tooltip>
+        </IconButton>
+        <IconButton  color="secondary" onClick={() => {setConsoleState(true)}}><Computer fontSize="small"/></IconButton>
       </header>
     </div>
     </ThemeProvider>
   );
 }
+
 
 export default App;

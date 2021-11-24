@@ -159,6 +159,19 @@ class Die {
     return d;
   }
 
+  equals(d: Die) {
+    return (
+      this.min === d.min &&
+      this.max === d.max &&
+      this.dice === d.dice &&
+      this.mod === d.mod &&
+      this.mult === d.mult &&
+      this.repeat === d.repeat &&
+      this.exclusive === d.exclusive &&
+      this.zerobase === d.zerobase
+    )
+  }
+
   toString(compact = false): string {
     let value = `${this.dice}d${this.max}`;
 
@@ -223,8 +236,9 @@ class Die {
       [match.groups?.flag1, match.groups?.flag2].map((e) => {
         if (e) {
           if (e.toLowerCase() === "x") this.exclusive = true;
-          if (e.toLowerCase() === "z") this.zerobase = true;
-          if (this.zerobase && match.groups?.min === undefined) {
+          // zero base is ignored if any non-zero min is explictly set
+          if ((e.toLowerCase() === "z") && (match.groups?.min === undefined || this.min === 0)) {
+            this.zerobase = true;
             this.min = 0;
           }
         }

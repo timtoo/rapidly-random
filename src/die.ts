@@ -50,225 +50,233 @@ Other notes:
 
 */
 
+const DEFAULT_MIN: number = 1;
+const DEFAULT_MAX: number = 6;
+const DEFAULT_DICE: number = 1;
+const DEFAULT_MULT: number = 1;
+const DEFAULT_MOD: number = 0;
+const DEFAULT_REPEAT: number = 1;
 
-const DEFAULT_MIN:number = 1;
-const DEFAULT_MAX:number = 6;
-const DEFAULT_ROLLS:number = 1;
-const DEFAULT_MULT:number = 1;
-const DEFAULT_MOD:number = 0;
-const DEFAULT_REPEAT:number = 1;
+const MULTIPY_CHARS: string = "x×*";
+const DIVIDE_CHARS: string = "/÷";
 
-const MULTIPY_CHARS:string = "x×*";
-const DIVIDE_CHARS:string = "/÷";
-
-const DieRegExp = new RegExp(`\\b((?<repeat>\\d+)[${MULTIPY_CHARS}]\\(?)?(?<rolls>\\d*)[dD](?<max>-?\\d*)(\>(?<min>-?\\d+))?((?<mult>[${MULTIPY_CHARS}${DIVIDE_CHARS}]\\d+)(?<mod>[+-]\\d+)|(?<mod1>[+-]\\d+)(?<mult1>[${MULTIPY_CHARS}${DIVIDE_CHARS}]\\d+)|(?<mod2>[+-]\\d+)|(?<mult2>[${MULTIPY_CHARS}${DIVIDE_CHARS}]\\d+))?(?<flag1>[xXzZ])?(?<flag2>[xXzZ])?\\b`);
-
+const DieRegExp = new RegExp(
+  `\\b((?<repeat>\\d+)[${MULTIPY_CHARS}]\\(?)?(?<rolls>\\d*)[dD](?<max>-?\\d*)(\>(?<min>-?\\d+))?((?<mult>[${MULTIPY_CHARS}${DIVIDE_CHARS}]\\d+)(?<mod>[+-]\\d+)|(?<mod1>[+-]\\d+)(?<mult1>[${MULTIPY_CHARS}${DIVIDE_CHARS}]\\d+)|(?<mod2>[+-]\\d+)|(?<mult2>[${MULTIPY_CHARS}${DIVIDE_CHARS}]\\d+))?(?<flag1>[xXzZ])?(?<flag2>[xXzZ])?\\b`
+);
 
 class Die {
-    min: number;
-    max: number;
-    rolls: number;
-    mod: number;
-    mult: number;
-    repeat: number;
-    zerobase: boolean;
-    exclusive: boolean;
+  min: number;
+  max: number;
+  dice: number;
+  mod: number;
+  mult: number;
+  repeat: number;
+  zerobase: boolean;
+  exclusive: boolean;
 
-    parsedText: string;
-    rid: number;
+  parsedText: string;
+  rid: number;
 
-    constructor(min:number|string=DEFAULT_MIN,
-                max=DEFAULT_MAX, 
-                rolls=DEFAULT_ROLLS, 
-                mod=DEFAULT_MOD, 
-                mult=DEFAULT_MULT, 
-                repeat=DEFAULT_REPEAT,
-                exclusive=false,
-                zerobase=false,
-                ) {
-        this.min = DEFAULT_MIN // default minimum allowed
-        this.max = max; // sides of dice
-        this.rolls = rolls; // number of times to roll dice
-        this.mod = mod; // positive or negative modifier
-        this.mult = mult; // multiplier (decimal to divide)
-        this.repeat = repeat; // how many times to roll the above
+  constructor(
+    min: number | string = DEFAULT_MIN,
+    max = DEFAULT_MAX,
+    dice = DEFAULT_DICE,
+    mod = DEFAULT_MOD,
+    mult = DEFAULT_MULT,
+    repeat = DEFAULT_REPEAT,
+    exclusive = false,
+    zerobase = false
+  ) {
+    this.min = DEFAULT_MIN; // default minimum allowed
+    this.max = max; // sides of dice
+    this.dice = dice; // number of times to roll dice
+    this.mod = mod; // positive or negative modifier
+    this.mult = mult; // multiplier (decimal to divide)
+    this.repeat = repeat; // how many times to roll the above
 
-        this.zerobase = zerobase; // zero is lowest instead of one
-        this.exclusive = exclusive; // subtract 1 from highest dice number
+    this.zerobase = zerobase; // zero is lowest instead of one
+    this.exclusive = exclusive; // subtract 1 from highest dice number
 
-        this.parsedText = '';
+    this.parsedText = "";
 
-        if (typeof min === "string") {
-            let result = this.parse(min);
-            if (result === null) throw new Error("Invalid dice notation");
+    if (typeof min === "string") {
+      let result = this.parse(min);
+      if (result === null) throw new Error("Invalid dice notation");
+    } else {
+      this.min = min;
+    }
+
+    this.rid = Math.random(); // meaningless random number
+  }
+
+  // the minimum and maximum possible range to roll
+  // note: probabilty distribution may not be even if repeats?
+  range(): [number, number] {
+    let min = (this.dice * this.mult + this.mod) * this.repeat;
+    let max = (this.max * this.dice * this.mult + this.mod) * this.repeat;
+    if (this.exclusive) max--;
+    return [min, max];
+  }
+
+  one_roll(): number {
+    let min = this.min * this.dice;
+    let max = this.max * this.dice;
+
+    let result = min;
+
+    if (!this.exclusive) max++;
+
+    if (min < max) {
+      result = Math.floor(Math.random() * (max - min)) + min;
+    }
+    result = Math.round(result * this.mult); // maybe should FLOOR?
+    result += this.mod;
+
+    return result;
+  }
+
+  roll(): number {
+    let result = this.one_roll();
+    if (this.repeat > 1) {
+      for (let i = 1; i < this.repeat; i++) {
+        result += this.one_roll();
+      }
+    }
+    return result;
+  }
+
+  clone() {
+    const d = new Die(
+      this.min,
+      this.max,
+      this.dice,
+      this.mod,
+      this.mult,
+      this.repeat,
+      this.exclusive,
+      this.zerobase
+    );
+    return d;
+  }
+
+  toString(compact = false): string {
+    let value = `${this.dice}d${this.max}`;
+
+    //if (this.min !== 1) value += ">" + this.min;
+    //if (this.min !== 1 || (this.min === 0 && (! this.zerobase))) value += ">" + this.min;
+    if (this.min !== 1) {
+      if (!(this.min === 0 && this.zerobase)) value += ">" + this.min;
+    }
+    if (this.mult > 1) value += "x" + this.mult;
+    if (this.mult > 0 && this.mult < 1)
+      value += "/" + Math.round(1 / this.mult);
+
+    if (this.mod > 0) value += "+" + this.mod;
+    if (this.mod < 0) value += this.mod;
+
+    if (this.repeat > 1) value = `${this.repeat}x(${value})`;
+
+    if (compact) {
+      if (this.max === 6) value = value.replace("d6", "d");
+      if (this.dice === 1) value = value.replace("1d", "d");
+    }
+
+    if (this.exclusive) value += "x";
+    if (this.min === 0 && this.zerobase) value += "z";
+
+    return value;
+  }
+
+  parse(s: string): Die | null {
+    const match = DieRegExp.exec(s);
+
+    if (match) {
+      console.log(match.groups);
+      this.parsedText = s;
+      this.repeat = match.groups?.repeat
+        ? +match.groups.repeat
+        : DEFAULT_REPEAT;
+      this.dice = match.groups?.rolls ? +match.groups.rolls : DEFAULT_DICE;
+      this.mod = +(
+        match.groups?.mod2 ||
+        match.groups?.mod1 ||
+        match.groups?.mod ||
+        DEFAULT_MOD
+      );
+      this.max = match.groups?.max ? +match.groups.max : DEFAULT_MAX;
+      this.min = match.groups?.min ? +match.groups.min : DEFAULT_MIN;
+
+      if (this.min > this.max) [this.min, this.max] = [this.max, this.min];
+
+      this.mult = DEFAULT_MULT;
+      let mult: string | undefined =
+        match.groups?.mult2 || match.groups?.mult1 || match.groups?.mult;
+      if (mult) {
+        DIVIDE_CHARS.indexOf(mult[0]) >= 0
+          ? (this.mult = 1 / +mult.slice(1))
+          : (this.mult = +mult.slice(1));
+      }
+
+      this.exclusive = false;
+      this.zerobase = false;
+
+      [match.groups?.flag1, match.groups?.flag2].map((e) => {
+        if (e) {
+          if (e.toLowerCase() === "x") this.exclusive = true;
+          if (e.toLowerCase() === "z") this.zerobase = true;
+          if (this.zerobase && match.groups?.min === undefined) {
+            this.min = 0;
+          }
         }
-        else { this.min = min; }
+        return e;
+      });
 
-        this.rid = Math.random(); // meaningless random number
+      this.rid = Math.random();
+      return this;
     }
-
-    // the minimum and maximum possible range to roll
-    // note: probabilty distribution may not be even if repeats?
-    range(): [number, number] {
-        let min = ((this.rolls * this.mult) + this.mod) * this.repeat;
-        let max = ((this.max * this.rolls * this.mult) + this.mod) * this.repeat;
-        if (this.exclusive) max--;
-        return [min, max];
-    } 
-
-    one_roll(): number {
-
-        let min = (this.min * this.rolls)
-        let max = (this.max * this.rolls)
-
-        let result = min
-
-        if (!this.exclusive) max++;
-
-        if (min < max) {
-            result = Math.floor(Math.random() * (max - min)) + min;
-        }
-        result = Math.round(result * this.mult); // maybe should FLOOR?
-        result += this.mod;
-
-        return result;
-    }
-
-    roll(): number {
-        let result = this.one_roll();
-        if (this.repeat > 1) {
-            for (let i=1; i < this.repeat; i++) {
-                result += this.one_roll();
-            }
-        }
-        return result;
-    }
-
-    clone() {
-        const d = new Die(
-            this.min,
-            this.max,
-            this.rolls,
-            this.mod,
-            this.mult,
-            this.repeat,
-        )
-        d.exclusive = this.exclusive;
-        d.zerobase = this.zerobase;
-        return d;
-    }
-
-    toString(compact=false): string {
-        let value = `${this.rolls}d${this.max}`
-
-	//if (this.min !== 1) value += ">" + this.min;
-	//if (this.min !== 1 || (this.min === 0 && (! this.zerobase))) value += ">" + this.min;
-	if (this.min !== 1) {
-		if (!(this.min === 0 && this.zerobase)) value += ">" + this.min;
-	}
-        if (this.mult>1) value += 'x' + this.mult
-        if (this.mult>0 && this.mult<1) value += '/' + Math.round(1/this.mult)
-
-        if (this.mod>0) value += '+' + this.mod;
-        if (this.mod<0) value += this.mod;
-
-        if (this.repeat>1) value = `${this.repeat}x(${value})`;
-
-        if (compact) {
-            if (this.max === 6) value = value.replace('d6', 'd');
-            if (this.rolls === 1) value = value.replace('1d', 'd');
-        }
-
-	if (this.exclusive) value += 'x';
-	if (this.min === 0 && this.zerobase) value += 'z';
-
-        return value
-    }
-
-    parse(s: string): Die | null {
-        const match = DieRegExp.exec(s);
-
-        if (match) {
-            console.log(match.groups)
-            this.parsedText = s;
-            this.repeat = match.groups?.repeat ? +match.groups.repeat : DEFAULT_REPEAT;
-            this.rolls = match.groups?.rolls ? +match.groups.rolls : DEFAULT_ROLLS;
-            this.mod = +(match.groups?.mod2 || match.groups?.mod1 || match.groups?.mod || DEFAULT_MOD);
-            this.max = match.groups?.max ? +match.groups.max : DEFAULT_MAX;
-            this.min = match.groups?.min ? +match.groups.min : DEFAULT_MIN;
-
-            if (this.min > this.max) [this.min, this.max] = [this.max, this.min]
-
-            this.mult = DEFAULT_MULT;
-            let mult:string|undefined = match.groups?.mult2 || match.groups?.mult1 || match.groups?.mult;
-            if (mult) {
-                (DIVIDE_CHARS.indexOf(mult[0]) >=0) 
-                        ? this.mult = 1/+mult.slice(1) 
-                        : this.mult = +mult.slice(1);
-            }
-
-            this.exclusive = false;
-            this.zerobase = false;
-
-            [match.groups?.flag1, match.groups?.flag2].map((e) => {
-                if (e) {
-                    if (e.toLowerCase() === 'x') this.exclusive = true;
-                    if (e.toLowerCase() === 'z') this.zerobase = true;
-                    if (this.zerobase && match.groups?.min === undefined) {
-                        this.min = 0
-                    }
-                }
-                return e;
-            })
-
-            this.rid = Math.random();
-            return this;
-        }
-        return null;
-    }
-
+    return null;
+  }
 }
 
-const test_dice: { [key: string]: Die} = {
-        'd': 		new Die(),
-        'd6': 		new Die(),
-        '1d6': 		new Die(),
-        '2d6': 		new Die(6,2),
-        '5d20': 	new Die(20,5),
-        '3d12': 	new Die(12,3),
-        '3d12+4': 	new Die(12,3,4),
-        '3d12-5': 	new Die(12,3,-5),
-        '4d8x3': 	new Die(8,4,0,3),
-        'd8/2': 	new Die(8,1,0,0.5),
-        'd/3': 		new Die(6,1,0,0.3333333333),
-        '10d100/4+5': 	new Die(100,10,5,0.25),
-        '4x(10d100/4+5)': new Die(100,10,5,0.25,4),
-        '4x(10d100+5/4)': new Die(100,10,5,0.25,4), // wrong, but we got it
-        '3xd':	 	new Die(6,1,0,1,3),
-        '1d6>2': 	new Die(),
-        '1d5>0': 	new Die(),
-        '1d6>0x': 	new Die(),
-        '1d6xz': 	new Die(),
-        '1d6>1z': 	new Die(),
-        '1d6>3': 	new Die(),
-        'd12>8-4': 	new Die(),
-        'd>2': 		new Die(),
-        'd-6>10': 		new Die(),
-        'd-6>-10': 		new Die(),
-}
+const test_dice: { [key: string]: Die } = {
+  d: new Die(),
+  d6: new Die(),
+  "1d6": new Die(),
+  "2d6": new Die(6, 2),
+  "5d20": new Die(20, 5),
+  "3d12": new Die(12, 3),
+  "3d12+4": new Die(12, 3, 4),
+  "3d12-5": new Die(12, 3, -5),
+  "4d8x3": new Die(8, 4, 0, 3),
+  "d8/2": new Die(8, 1, 0, 0.5),
+  "d/3": new Die(6, 1, 0, 0.3333333333),
+  "10d100/4+5": new Die(100, 10, 5, 0.25),
+  "4x(10d100/4+5)": new Die(100, 10, 5, 0.25, 4),
+  "4x(10d100+5/4)": new Die(100, 10, 5, 0.25, 4), // wrong, but we got it
+  "3xd": new Die(6, 1, 0, 1, 3),
+  "1d6>2": new Die(),
+  "1d5>0": new Die(),
+  "1d6>0x": new Die(),
+  "1d6xz": new Die(),
+  "1d6>1z": new Die(),
+  "1d6>3": new Die(),
+  "d12>8-4": new Die(),
+  "d>2": new Die(),
+  "d-6>10": new Die(),
+  "d-6>-10": new Die(),
+};
 
 function testdie(): void {
-
-    for (let ds in test_dice) {
-	    let d = new Die(ds);
-            console.log(ds, '=', d.toString() )
-            console.log(JSON.stringify(d))
-            console.log("")
-    }
+  for (let ds in test_dice) {
+    let d = new Die(ds);
+    console.log(ds, "=", d.toString());
+    console.log(JSON.stringify(d));
+    console.log("");
+  }
 }
 
-if (typeof require !== 'undefined' && require.main === module) {
-    testdie();
+if (typeof require !== "undefined" && require.main === module) {
+  testdie();
 }
 
 export { Die, DieRegExp };

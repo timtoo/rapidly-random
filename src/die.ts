@@ -2,51 +2,13 @@
 
 See: [Dice notation](https://en.wikipedia.org/wiki/Dice_notation)
 
-Our notation can handle:
+For details on our extensions, see README.md
 
-- standard: 3d6
-- with optional multiplier: 3d6x5
-- with optional modifier: 3d6+2 or 3d6x5+2
-- with optional repeat: 4x(3d6+2)
-- 1d6 is default, so these are equivalent: d, d6, 1d
+Note on `results` array. 
 
-We have several extensions to the above notation. 
-
-The main addition is the ability to specify a lower bound (or a minimum value) on 
-a dice rather than the assumed value of 1. This may be imagined by a rule stating
-that if any dice roles are below the given value those dice are re-rolled until 
-they meet or exceed the minimum value.
-
-To optionally note this role, append immedately after the die number (ie. number 
-of sides, or maximum value) a greater than sign (closing angle bracket) followed 
-by the minimum value. For example:
-
-- 3 to 6: 1d6>3
-- 8 to 12: 1d6>3
-- 8 to 12 minus 4 (effectively 4 to 8): d12>8-4
-- 2 to 6: d>2
-
-In addition we add the concept of flags to the end of the notation. A flag
-is a single letter. There may be multiple flags, or no flags. 
-
-The flags are:
-
-- exclusive mode: x
-- zero based mode: z 
-
-Exclusive mode means the upper bound (die number) is one more than the highest
-possible number. Zero based means we start counting at zero rather than one. 
-These flags are redundant in that the range could be expressed in absolute 
-numbers, but they add semantic meaning for some uses.
-
-- 0 to 5: 1d6xz or 1d6>0x or 1d5>0 
-
-Other notes:
-
-- If the upper bound is is less than the lower, they will be swapped
-- You can use negative numbers for upper and lower bounds (1d-1>-6)
-- zero flag will not override explictly specified lower bound
-    - 1d6>1z is still just 1d6 despite the zero base flag. 
+- Each row represents the results of one throw (one repeat). 
+- Each row contains: `[total with modifier/multiplier, die 1, die 2, die 3, ...]`
+- the `result` variable will have a sum of the totals
 
 */
 
@@ -75,6 +37,8 @@ class Die {
   exclusive: boolean;
 
   parsedText: string;
+  result: number | null;
+  results: number[][];
   rid: number;
 
   constructor(
@@ -97,6 +61,8 @@ class Die {
     this.zerobase = zerobase; // zero is lowest instead of one
     this.exclusive = exclusive; // subtract 1 from highest dice number
 
+    this.result = null;
+    this.results = [];
     this.parsedText = "";
 
     if (typeof min === "string") {
@@ -109,6 +75,17 @@ class Die {
     this.rid = Math.random(); // meaningless random number
   }
 
+  // the up side is you always get a number, down side is it's always -1 if not rolled
+  getResult(): number {
+    return this.result === null ? -1 : this.result;
+  }
+
+  // return just the dice values for the given throw (note: 1-based)
+  getThrow(repeat=1): number[] {
+    if (this.results.length >= repeat) return this.results[repeat-1].slice(1);
+    return [];
+  }
+
   // the minimum and maximum possible range to roll
   // note: probabilty distribution may not be even if repeats?
   range(): [number, number] {
@@ -118,43 +95,55 @@ class Die {
     return [min, max];
   }
 
-  one_roll(): number {
-    let min = this.min * this.dice;
-    let max = this.max * this.dice;
+  // throw the dice, just once, return results in array
+  throw(): number[] {
+    let row: number[] = [0];
+    let upper = this.exclusive ? this.max : this.max + 1;
 
-    let result = min;
-
-    if (!this.exclusive) max++;
-
-    if (min < max) {
-      result = Math.floor(Math.random() * (max - min)) + min;
+    for (let i=0; i<this.dice; i++) {
+      row.push(Math.floor(Math.random() * (upper - this.min)) + this.min);
+      row[0] += row[row.length-1]
     }
-    result = Math.round(result * this.mult); // maybe should FLOOR?
-    result += this.mod;
 
-    return result;
+    row[0] = Math.ceil(row[0] * this.mult); // D&D manaul says round up?
+    row[0] += this.mod
+
+    return row;
   }
 
-  roll(): number {
-    let result = this.one_roll();
+  // throw the dice as many times as needed, update object with results, return object
+  roll(): Die {
+    this.results = [this.throw()]
+    this.result = this.results[0][0]
     if (this.repeat > 1) {
       for (let i = 1; i < this.repeat; i++) {
-        result += this.one_roll();
+        this.results.push(this.throw())
+        this.result += this.results[this.results.length-1][0]
       }
     }
-    return result;
+    return this;
   }
 
-  clone() {
+  // return a new dice object with same settings, with optional overrides
+  clone(
+    min?: number,
+    max?: number,
+    dice?: number,
+    mod?: number,
+    mult?: number,
+    repeat?: number,
+    exclusive?: boolean,
+    zerobase?: boolean
+  ) {
     const d = new Die(
-      this.min,
-      this.max,
-      this.dice,
-      this.mod,
-      this.mult,
-      this.repeat,
-      this.exclusive,
-      this.zerobase
+      min || this.min,
+      max || this.max,
+      dice || this.dice,
+      mod || this.mod,
+      mult || this.mult,
+      repeat || this.repeat,
+      exclusive || this.exclusive,
+      zerobase || this.zerobase
     );
     return d;
   }
@@ -169,7 +158,7 @@ class Die {
       this.repeat === d.repeat &&
       this.exclusive === d.exclusive &&
       this.zerobase === d.zerobase
-    )
+    );
   }
 
   toString(compact = false): string {
@@ -237,7 +226,10 @@ class Die {
         if (e) {
           if (e.toLowerCase() === "x") this.exclusive = true;
           // zero base is ignored if any non-zero min is explictly set
-          if ((e.toLowerCase() === "z") && (match.groups?.min === undefined || this.min === 0)) {
+          if (
+            e.toLowerCase() === "z" &&
+            (match.groups?.min === undefined || this.min === 0)
+          ) {
             this.zerobase = true;
             this.min = 0;
           }
@@ -250,47 +242,6 @@ class Die {
     }
     return null;
   }
-}
-
-const test_dice: { [key: string]: Die } = {
-  d: new Die(),
-  d6: new Die(),
-  "1d6": new Die(),
-  "2d6": new Die(6, 2),
-  "5d20": new Die(20, 5),
-  "3d12": new Die(12, 3),
-  "3d12+4": new Die(12, 3, 4),
-  "3d12-5": new Die(12, 3, -5),
-  "4d8x3": new Die(8, 4, 0, 3),
-  "d8/2": new Die(8, 1, 0, 0.5),
-  "d/3": new Die(6, 1, 0, 0.3333333333),
-  "10d100/4+5": new Die(100, 10, 5, 0.25),
-  "4x(10d100/4+5)": new Die(100, 10, 5, 0.25, 4),
-  "4x(10d100+5/4)": new Die(100, 10, 5, 0.25, 4), // wrong, but we got it
-  "3xd": new Die(6, 1, 0, 1, 3),
-  "1d6>2": new Die(),
-  "1d5>0": new Die(),
-  "1d6>0x": new Die(),
-  "1d6xz": new Die(),
-  "1d6>1z": new Die(),
-  "1d6>3": new Die(),
-  "d12>8-4": new Die(),
-  "d>2": new Die(),
-  "d-6>10": new Die(),
-  "d-6>-10": new Die(),
-};
-
-function testdie(): void {
-  for (let ds in test_dice) {
-    let d = new Die(ds);
-    console.log(ds, "=", d.toString());
-    console.log(JSON.stringify(d));
-    console.log("");
-  }
-}
-
-if (typeof require !== "undefined" && require.main === module) {
-  testdie();
 }
 
 export { Die, DieRegExp };

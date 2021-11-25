@@ -25,6 +25,7 @@ const test_dice: { [key: string]: [Die, string, string?] } = {
     "1D6>0x": [new Die(0, 6, 1, 0, 1, 1, true, false), "1d6>0x", "d6>0x"],
     "1d6xz": [new Die(0, 6, 1, 0, 1, 1, true, true), "", "d6xz"],
     "1d6>1z": [new Die(1, 6, 1, 0, 1, 1, false, false), "1d6", "d"], // zero mode ignored due to >1
+    "3d6z": [new Die(0, 6, 3, 0, 1, 1, false, false), "3d6z", "3dz"], 
     "1d6>3": [new Die(3, 6, 1, 0, 1, 1, false, false), "", "d6>3"],
     "d12>8-4": [new Die(8, 12, 1, -4, 1, 1, false, false), "1d12>8-4", ],
     "d>2": [new Die(2, 6, 1, 0, 1, 1, false, false), "1d6>2", "d>2" ],
@@ -58,4 +59,12 @@ it("test dice constructor and parser", () => {
         expect(test_dice[ds][1] || ds).toEqualWithMessage(d.toString(), "key:"+ds)
         expect(d.equals(test_dice[ds][0])).toEqualWithMessage(true, JSON.stringify(d)+" != "+JSON.stringify(test_dice[ds][0]))
     }
+})
+
+it("test functions for expected results", () => {
+    let d = new Dice()
+    expect(d.getResult()).toEqualWithMessage(-1, "unrolled result should always be -1")
+    d.roll()
+    expect(d.result()).not.toEqual(-1)
+    expect(new Die().roll()).not.toEqual(-1)
 })

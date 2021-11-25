@@ -208,6 +208,14 @@ function App() {
     console.log('set-generate-state')
     setState(generate(state, mode))
   }
+
+  // pass through to last die.getThrow with some safety
+  function getThrow(): number[] {
+    if (state.rolls.length>0) {
+      return state.rolls[0].die.getThrow()
+    }
+    return []
+  }
   
   
   function handleModeChange(value: string) {
@@ -271,12 +279,12 @@ function App() {
         <Grid container spacing={2}>
 
           <Grid item xs={12}>
-            { (state.rolls.length === 0) ? "" :
-                state.rolls[0].die.getThrow().map(
-                    (v, i) => <DisplayButton value={v} index={i} mode={mode} clickHandler={setGenerateState} />)}
+            { getThrow().map(
+                    (v, i) => <DisplayButton value={v} index={i} mode={mode} 
+                                    clickHandler={setGenerateState} />)}
             { (state.rolls.length !== 0) ? "" : (
               <DisplayButton value="Press Here!" index={0} mode="info" clickHandler={setGenerateState} />) }
-          <Typography color="text.secondary" sx={{marginTop: "0.5em"}}><i>{state.die.getRangeString(true, " to ")}</i></Typography>
+          <Typography color="text.secondary" sx={{marginTop: "0.5em"}}><i>{ getThrow().length > 1 ? "Total: " + getThrow().reduce((p, c) => p+c) + " - " : "" } Range: {state.die.getRangeString(true, " to ")}</i></Typography>
           { (state.rolls.length === 0) ? "" : (<><Typography sx={{fontSize:"50%"}}>{state.lastTime.toString()}</Typography></>) }
           </Grid>
 

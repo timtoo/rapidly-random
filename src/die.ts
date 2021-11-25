@@ -19,7 +19,7 @@ const DEFAULT_MULT: number = 1;
 const DEFAULT_MOD: number = 0;
 const DEFAULT_REPEAT: number = 1;
 
-const MULTIPY_CHARS: string = "x×*";
+const MULTIPY_CHARS: string = "Xx×*";
 const DIVIDE_CHARS: string = "/÷";
 
 const DieRegExp = new RegExp(
@@ -88,9 +88,9 @@ class Die {
 
   // the minimum and maximum possible range to roll
   // note: probabilty distribution may not be even if repeats?
-  range(): [number, number] {
-    let min = (this.dice * this.mult + this.mod) * this.repeat;
-    let max = (this.max * this.dice * this.mult + this.mod) * this.repeat;
+  getRange(): [number, number] {
+    let min = ((this.dice * this.mult) + this.mod) * this.repeat;
+    let max = ((this.max * this.dice * this.mult) + this.mod) * this.repeat;
     if (this.exclusive) max--;
     return [min, max];
   }
@@ -193,7 +193,7 @@ class Die {
     const match = DieRegExp.exec(s);
 
     if (match) {
-      console.log(match.groups);
+      //console.log(match.groups);
       this.parsedText = s;
       this.repeat = match.groups?.repeat
         ? +match.groups.repeat

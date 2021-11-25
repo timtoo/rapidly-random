@@ -39,27 +39,19 @@ type saveStateDictType = {
 }
 
 type stateType = {
-  min: number,
-  max: number,
-  exclusive: boolean,
-  zeroBase: boolean,
+  die: Die,
   randoms: randomType[],
   lastTime: Date,
   previousRange: string[],
-  quantity: number,
   newQuantity: number,
 }
 
 const initState: stateType = {
-  min: DEFAULT_MIN,
-  max: DEFAULT_MAX,
-  exclusive: false,
-  zeroBase: false,
+  die: new Die(DEFAULT_MIN, DEFAULT_MAX, DEFAULT_QUANTITY, 0, 1, 1, false, false),
   randoms: [],
   lastTime: new Date(),
   previousRange: [],
-  quantity: DEFAULT_QUANTITY,
-  newQuantity: DEFAULT_QUANTITY,
+  newQuantity: DEFAULT_QUANTITY, // don't change quanity directly or will 
 }
 
 const MODES: string[][] = [ 
@@ -71,15 +63,15 @@ const MODES: string[][] = [
 // generate new randoms numbers to the front of the history list
 function generate(state: stateType, min?: number, max?: number): stateType {
 
-  if (min === undefined) min = state.min;
-  if (max === undefined) max = state.max;
+  if (min === undefined) min = state.die.min;
+  if (max === undefined) max = state.die.max;
 
-  const newState = {...state, min: min, max: max};
-  const exclusive_max = state.exclusive ? max - 1 : max
+  const newState = {...state, die: state.die.clone(min, max)};
+  const exclusive_max = state.die.exclusive ? max - 1 : max
 
-  if (state.newQuantity !== state.quantity) newState.quantity = state.newQuantity;
+  if (state.newQuantity !== state.die.dice) newState.die.dice = state.newQuantity;
 
-  for (let i=0; i < newState.quantity; i++) {
+  for (let i=0; i < newState.die.dice; i++) {
     newState.randoms.unshift({
       value: Math.floor(Math.random() * (exclusive_max + 1 - min) + min),
       min: min, 
@@ -105,16 +97,27 @@ const saveStateDictInit: saveStateDictType = {}
 
 function App() {
 
+  function handleQuantityKeys(amount:number) {
+    console.log('up '+mode)
+    if (mode !== 'dice') {
+      const control = quantityInputRef?.current as HTMLInputElement
+      control.value = ""+(+control.value + amount);
+      setState((o) => ({...o, newQuantity: state.newQuantity-1}))
+    }
+  }
+
   const [state, setState] = useState(initState);
   const [mode, setMode] = useState("default");
   const [prevModeState, setPrevModeState] = useState(saveStateDictInit);
   const [ttopen, setttopen] = useState(false);
   const [consoleState, setConsoleState] = useState(false);
   const consoleInputRef = useRef<HTMLInputElement | null>(null);
+  const quantityInputRef = useRef<HTMLInputElement | null>(null);
+  
 
   useHotkeys('`', () => setConsoleState(!consoleState));
-// this is causing state update loop with the input field
-//  useHotkeys('up', () => setState({...state, newQuantity: state.newQuantity+1}));
+  //this is causing state update loop with the input field
+  useHotkeys('up', () => handleQuantityKeys(1));
 //  useHotkeys('down', () => setState({...state, newQuantity: state.newQuantity-1}));
   useHotkeys('h', () => handleModeChange("hex"));
   useHotkeys('d', () => handleModeChange("dice"));
@@ -125,6 +128,7 @@ function App() {
   function handleLimitChange(value: number, type: "lower"|"upper_reset"|"upper"): stateType {
     const newState: stateType = {...state};
 
+    // make sure lower 
     if (type === 'lower') {
       const closest_min: number = state.exclusive ? newState.max - 2 : newState.max - 1;
       if (isNaN(value)) value = state.zeroBase ? 0 : DEFAULT_MIN;
@@ -298,8 +302,8 @@ function App() {
                 onChange={(e) => setState(handleLimitChange(parseInt(e.target.value), "upper"))}
                 InputLabelProps={{shrink: true}} />
             <TextField type="number" id="set-quantity" size="small" value={state.newQuantity} 
-                label="Quantity" sx={{width:"6em"}}
-                onChange={(e) => {setState({...state, newQuantity:parseInt(e.target.value)||DEFAULT_QUANTITY})}}
+                inputRef={quantityInputRef} label="Quantity" sx={{width:"6em"}}
+                onChange={(e) => {setState((o) => ({...o, newQuantity:parseInt(e.target.value)||DEFAULT_QUANTITY}))}}
                 InputLabelProps={{shrink: true}} />
 
 

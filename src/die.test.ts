@@ -18,6 +18,9 @@ const test_dice: { [key: string]: [Die, string, string?] } = {
     "d/3": [new Die(1, 6, 1, 0, 1/3), "1d6/3", ],
     "10d100/4+5": [new Die(1, 100, 10, 5, 0.25), "", ],
     "4x(10d100/4+5)": [new Die(1, 100, 10, 5, 0.25, 4), "", ],
+    "4X(10d100/4+5)": [new Die(1, 100, 10, 5, 0.25, 4), "4x(10d100/4+5)", ],
+    "4×(10d100/4+5)": [new Die(1, 100, 10, 5, 0.25, 4), "4x(10d100/4+5)", ],
+    "4*(10d100/4+5)": [new Die(1, 100, 10, 5, 0.25, 4), "4x(10d100/4+5)", ],
     "4x(10d100+5/4)": [new Die(1, 100, 10, 5, 0.25, 4), "4x(10d100/4+5)", ], 
     "3xd": [new Die(1, 6, 1, 0, 1, 3), "3x(1d6)", ],
     "1d6>2": [new Die(2, 6), "", "d>2"],
@@ -25,7 +28,7 @@ const test_dice: { [key: string]: [Die, string, string?] } = {
     "1D6>0x": [new Die(0, 6, 1, 0, 1, 1, true, false), "1d6>0x", "d6>0x"],
     "1d6xz": [new Die(0, 6, 1, 0, 1, 1, true, true), "", "d6xz"],
     "1d6>1z": [new Die(1, 6, 1, 0, 1, 1, false, false), "1d6", "d"], // zero mode ignored due to >1
-    "3d6z": [new Die(0, 6, 3, 0, 1, 1, false, false), "3d6z", "3dz"], 
+    "3d6z": [new Die(0, 6, 3, 0, 1, 1, false, true), "3d6z", "3dz"], 
     "1d6>3": [new Die(3, 6, 1, 0, 1, 1, false, false), "", "d6>3"],
     "d12>8-4": [new Die(8, 12, 1, -4, 1, 1, false, false), "1d12>8-4", ],
     "d>2": [new Die(2, 6, 1, 0, 1, 1, false, false), "1d6>2", "d>2" ],
@@ -52,19 +55,122 @@ expect.extend({
     }
 })
 
+expect.extend({
+    // generator = random number generating function
+    // target = number that we are looking for
+    // tries = max number of numbers to generate before failing
+    toGenerateRandomly(target, generator: Function, tries:number=1000) {
+        let pass = false
+        let fail = `did not generate a ${target} in ${tries} attempts`
+        for (let i=0; i<tries; i++) {
+            if (generator() === target) {
+                pass = true;
+                break;
+            }
+        }
+
+        return {
+                message: () => fail,
+                pass: pass
+        }
+    }
+})
+
+
 it("test dice constructor and parser", () => {
     for (let ds in test_dice) {
         let d = new Die(ds);
-        console.log(ds, ' : ', test_dice[ds][1] || ds, " = ", d.toString(), " ", JSON.stringify(ds))
+        //console.log(ds, ' : ', test_dice[ds][1] || ds, " = ", d.toString(), " ", JSON.stringify(ds))
         expect(test_dice[ds][1] || ds).toEqualWithMessage(d.toString(), "key:"+ds)
-        expect(d.equals(test_dice[ds][0])).toEqualWithMessage(true, JSON.stringify(d)+" != "+JSON.stringify(test_dice[ds][0]))
+        expect(d.equals(test_dice[ds][0])).toEqualWithMessage(true, ds+' '+JSON.stringify(d)+" != "+JSON.stringify(test_dice[ds][0]))
     }
 })
 
 it("test functions for expected results", () => {
-    let d = new Dice()
+    let d = new Die()
     expect(d.getResult()).toEqualWithMessage(-1, "unrolled result should always be -1")
     d.roll()
-    expect(d.result()).not.toEqual(-1)
+    expect(d.getResult()).not.toEqual(-1)
     expect(new Die().roll()).not.toEqual(-1)
 })
+
+it("rolling produces result data", () => {
+    let d = new Die("1d6")
+    expect(d.result).toBeNull()
+    expect(d.results.length).toEqual(0)
+    d.roll()
+    expect(d).toBeInstanceOf(Die);
+    expect(d.result).not.toBeNull()
+    expect(d.results.length).toEqual(1)
+    expect(d.results[0].length).toEqual(2) // total and single die roll
+    expect(d.result).toEqual(d.results[0][0])
+    expect(d.getResult()).toEqual(d.result)
+    expect(d.result).toBeGreaterThanOrEqual(1)
+    expect(d.result).toBeLessThanOrEqual(6)
+    expect(d.getThrow()[0]).toEqual(d.result) // since 1 repeat, first element is result
+
+    d = new Die("2d6").roll()
+    expect(d.results.length).toEqual(1)
+    expect(d.results[0].length).toEqual(3) // total and two die rolls
+    expect(d.results[0][0]).toEqual(d.result) // since 1 repeat, first element is result
+
+    d = new Die("3x(2d6)").roll()
+    expect(d.results.length).toEqual(3)
+    expect(d.results[2].length).toEqual(3) // total and two die rolls for last repeat
+    expect(d.results[0][0]).not.toEqual(d.result) // since ?1 repeat, first element is not result
+});
+
+it("do possible ranges look reasonable?", () => {
+    let min: number, max: number
+    let d = new Die("1d6");
+    [min, max] = d.getRange()
+    expect(min).toEqual(1)
+    expect(max).toEqual(6)
+
+    d = new Die("2d6");
+    [min, max] = d.getRange()
+    expect(min).toEqual(2)
+    expect(max).toEqual(12)
+
+    d = new Die("2X(1d6)");
+    [min, max] = d.getRange()
+    expect(min).toEqual(2)
+    expect(max).toEqual(12)
+
+    // TODO: could use some more complicated tests here
+
+});
+
+it("test randomness (sort of?? PROBABLY will work? theoretically could fail)", () => {
+    let r: number[];
+    let d: Die;
+
+    d = new Die("1d3");
+    // fill array with 120 dice roll results
+    r = [...Array(120)].map((e) => d.roll().getResult()) 
+    expect(r).toContain(1)
+    expect(r).toContain(2)
+    expect(r).toContain(3)
+    expect(r).not.toContain(0)
+    expect(r).not.toContain(4)    
+
+    d = new Die("1d3z");
+    // fill array with 120 didce roll results
+    r = [...Array(120)].map((e) => d.roll().getResult()) 
+    expect(r).toContain(0)
+    expect(r).toContain(1)
+    expect(r).toContain(2)
+    expect(r).toContain(3)
+    expect(r).not.toContain(-1)
+    expect(r).not.toContain(4)    
+
+    d = new Die("1d3xz");
+    // fill array with 120 dice roll results
+    r = [...Array(120)].map((e) => d.roll().getResult()) 
+    expect(r).toContain(0)
+    expect(r).toContain(1)
+    expect(r).toContain(2)
+    expect(r).not.toContain(-1)
+    expect(r).not.toContain(3)    
+
+});

@@ -19,39 +19,33 @@ const DEFAULT_MAX: number = 10;
 const MAX_QUANTITY: number = 100;
 const MAX_HISTORY: number = MAX_QUANTITY * 5;
 
-type randomType = {
-  value: number,
-  min: number, 
-  max: number,
+type rollHistoryType = {
+  label: string,
+  die: Die,
+  mode: string,
   time: Date,
-  exclusive: boolean,
-}
-
-type saveStateType = {
-  min: number,
-  max: number,
-  exclusive: boolean,
-  zeroBase: boolean,
 }
 
 type saveStateDictType = {
-  [key: string]: saveStateType
+  [key: string]: Die
 }
 
 type stateType = {
   die: Die,
-  randoms: randomType[],
+  rolls: rollHistoryType[],
   lastTime: Date,
   previousRange: string[],
   newQuantity: number,
+  needUpdate: number
 }
 
 const initState: stateType = {
   die: new Die(DEFAULT_MIN, DEFAULT_MAX, DEFAULT_QUANTITY, 0, 1, 1, false, false),
-  randoms: [],
+  rolls: [],
   lastTime: new Date(),
   previousRange: [],
   newQuantity: DEFAULT_QUANTITY, // don't change quanity directly or will 
+  needUpdate: 0
 }
 
 const MODES: string[][] = [ 
@@ -61,35 +55,29 @@ const MODES: string[][] = [
 ]
 
 // generate new randoms numbers to the front of the history list
-function generate(state: stateType, min?: number, max?: number): stateType {
+function generate(state: stateType, mode: string, min?: number, max?: number): stateType {
+  const die = state.die
+  const newState = {...state};
 
-  if (min === undefined) min = state.die.min;
-  if (max === undefined) max = state.die.max;
+  if (min === undefined) min = die.min;
+  if (max === undefined) max = die.max;
 
-  const newState = {...state, die: state.die.clone(min, max)};
-  const exclusive_max = state.die.exclusive ? max - 1 : max
+  // update number of dice requested
+  if (state.newQuantity !== die.dice) newState.die.dice = state.newQuantity;
 
-  if (state.newQuantity !== state.die.dice) newState.die.dice = state.newQuantity;
+  die.roll()
+  newState.rolls.unshift({label: die.toString(), die: die, mode: mode, time: new Date()})
+  newState.die = die.clone()
 
-  for (let i=0; i < newState.die.dice; i++) {
-    newState.randoms.unshift({
-      value: Math.floor(Math.random() * (exclusive_max + 1 - min) + min),
-      min: min, 
-      max: max,
-      time: new Date(),
-      exclusive: state.exclusive,
-    })
-    if (newState.randoms.length > MAX_HISTORY) newState.randoms.pop();
-  }
+  // trim roll history
+  if (newState.rolls.length > MAX_HISTORY) newState.rolls.pop();
 
-  const d = new Die(min, max, newState.quantity, 0, 1, 1, newState.exclusive, newState.zeroBase);
-  const dn = d.toString()
-  const dni = newState.previousRange.indexOf(dn)
-  if (dni>=0) newState.previousRange.splice(dni,1)
-  newState.previousRange.unshift(dn)
-  console.log(d.toString())
+  // add die to front of prevoius range list (removing duplicates)
+  const prev_index = newState.previousRange.indexOf(newState.rolls[0].label)
+  if (prev_index>=0) newState.previousRange.splice(prev_index,1)
+  newState.previousRange.unshift(newState.rolls[0].label)
 
-  newState.lastTime = newState.randoms[0].time;
+  newState.lastTime = newState.rolls[0].time;
   return newState;
 }
 
@@ -117,12 +105,18 @@ function App() {
 
   useHotkeys('`', () => setConsoleState(!consoleState));
   //this is causing state update loop with the input field
-  useHotkeys('up', () => handleQuantityKeys(1));
+  //useHotkeys('up', () => handleQuantityKeys(1));
 //  useHotkeys('down', () => setState({...state, newQuantity: state.newQuantity-1}));
   useHotkeys('h', () => handleModeChange("hex"));
   useHotkeys('d', () => handleModeChange("dice"));
   useHotkeys('n', () => handleModeChange("normal"));
-  useHotkeys('enter', () => setState(generate(state)));
+  useHotkeys('enter', () => setState(generate(state, mode)));
+
+  // wrapper to force state update (which might otherwise go unnoticed)
+  function setStateForce(state:stateType) {
+    const newState = {...state, needUpdate: state.needUpdate++}
+    setState(newState)
+  }
 
   // make sure the limit values are sane, then update state
   function handleLimitChange(value: number, type: "lower"|"upper_reset"|"upper"): stateType {
@@ -130,20 +124,20 @@ function App() {
 
     // make sure lower 
     if (type === 'lower') {
-      const closest_min: number = state.exclusive ? newState.max - 2 : newState.max - 1;
-      if (isNaN(value)) value = state.zeroBase ? 0 : DEFAULT_MIN;
+      const closest_min: number = state.die.exclusive ? newState.die.max - 2 : newState.die.max - 1;
+      if (isNaN(value)) value = state.die.zerobase ? 0 : DEFAULT_MIN;
       if (value > closest_min) value = closest_min;
-      newState.min = value
+      newState.die.min = value
     }
     else {
-      const closest_max: number = state.exclusive ? newState.min + 2 : newState.min + 1;
+      const closest_max: number = state.die.exclusive ? newState.die.min + 2 : newState.die.min + 1;
       if (isNaN(value)) value = DEFAULT_MAX;
       if (value < closest_max) {
         if (type === "upper_reset") {
-          const default_min = state.zeroBase ? 0 : DEFAULT_MIN;
-          const min_max = state.exclusive ? default_min + 2 : default_min + 1;
+          const default_min = state.die.zerobase ? 0 : DEFAULT_MIN;
+          const min_max = state.die.exclusive ? default_min + 2 : default_min + 1;
           if (value >= min_max) {
-            newState.min = default_min;
+            newState.die.min = default_min;
           }
           else {
             value = closest_max;
@@ -153,14 +147,14 @@ function App() {
           value = closest_max;
         }      
       }
-      newState.max = value
+      newState.die.max = value
     }
     return newState;
   }
 
   function handleMaxButton(event: React.MouseEvent<HTMLElement>, value: number) {
     const newState = handleLimitChange(value, "upper_reset");
-    setState(generate(newState));
+    setState(generate(newState, mode));
   }
   
   function QuickButtons(props: {label: string}): JSX.Element {
@@ -174,26 +168,25 @@ function App() {
       <Box sx={{display: "flex", flexDirection: "row", flexWrap: "wrap"}}>
         {values.map((v) => (
         <Button key={v} variant="contained" sx={{margin:"1px"}} onClick={(e) => handleMaxButton(e, v)}
-            color={state.max === v ? "secondary" : "primary"}>{v}</Button>))}
+            color={state.die.max === v ? "secondary" : "primary"}>{v}</Button>))}
       </Box>
     </>
     );
   }
 
-  function newDieState(die: Die): stateType {
-    return {
-          ...state,  
-          min:die.min+die.mod, 
-          max:die.max+die.mod, 
-          quantity:die.dice, 
-          zeroBase:die.zerobase, 
-          exclusive:die.exclusive
-    }
-  }
-
   function handleHistButton(event: React.MouseEvent<HTMLElement>, value: string) {
-    const die = new Die(value);
-    setState(generate(newDieState(die)));
+    const i = state.rolls.findIndex((v, i) => v.label === value)
+    let newmode = mode;
+    if (i>=0) { 
+      // XXX mode isn't updated on dropdown
+      newmode = state.rolls[i].mode
+      setMode(newmode)
+      state.die = state.rolls[i].die.clone()
+    }
+    else {
+      state.die = new Die(value);
+    }
+    setState(generate(state, newmode));
   }
   
   function HistoryButtons(props: {label: string, values: string[]}): JSX.Element {
@@ -213,48 +206,61 @@ function App() {
 
   function setGenerateState() {
     console.log('set-generate-state')
-    setState(generate(state))
+    setState(generate(state, mode))
   }
   
   
   function handleModeChange(value: string) {
-    console.log("mode change: ", value)
-    console.log(MODES.map(i=>i[0]))
+    //console.log("mode change: ", value)
+    //console.log(MODES.map(i=>i[0]))
+
+    let newState: stateType = {...state}
     
     // store previous mode settings
     if (MODES.find((e)=>e[0]===mode)) {
-      setPrevModeState({...prevModeState, [mode]: {
-        min: state.min,
-        max: state.max,
-        exclusive: state.exclusive,
-        zeroBase: state.zeroBase,
-      }})
+      setPrevModeState({...prevModeState, [mode]: state.die })
       setMode(value);
 
-      if (value === 'dice') {
-        // nothing else makes sense for dice
-        const newState: stateType = {...state, min:1, max:6, zeroBase:false, exclusive:false}
-        setState(newState)
-        generate(newState)
+      if (value in prevModeState) {
+        newState.die = prevModeState[value];
       }
       else {
-        // restore previous mode settings so one can go back quickly
-        if (value in prevModeState) {
-          setState({...state, 
-              min:prevModeState[value].min, 
-              max:prevModeState[value].max, 
-              zeroBase:prevModeState[value].zeroBase, 
-              exclusive:prevModeState[value].exclusive
-          })
+        if (value === 'dice') {
+          // nothing else makes sense for dice at this point
+          newState.die = new Die(1, 6)
+          newState = generate(newState, mode)
         }
-        // set these defaults if mode not already saved
-        else if (value === 'hex') {
-          setState({...state, min: 0, max: 256, zeroBase:true, exclusive:true})
+        else if (value == 'hex') {
+          newState.die = new Die(0, 256)
+          newState.die.exclusive = true
+          newState.die.zerobase = true
         }
+        else {
+          newState.die = new Die(DEFAULT_MIN, DEFAULT_MAX, DEFAULT_QUANTITY)
+        }
+
       }
+      setState(newState);
+    }
+    else {
+      console.log("error: unknown mode: " + value)
     }
   }
 
+  // extract simple list from history of die objects
+  function previousRandomValues(limit=50): number[] {
+    let result = []
+    for (const r of state.rolls.slice(1)) {
+      for (const v of r.die.getThrow()) {
+        result.push(v);
+        if (result.length >= limit) break;
+      }
+      if (result.length >= limit) break;      
+    }
+    return result;
+  }
+
+  // -------------------- LET THE SHOW BEGIN -------------------------
   return (
     <ThemeProvider theme={theme1}>
     <div className="App">
@@ -265,17 +271,19 @@ function App() {
         <Grid container spacing={2}>
 
           <Grid item xs={12}>
-            { state.randoms.slice(0, state.quantity).map(
-                (e:randomType, i) => <DisplayButton value={e.value} index={i} mode={mode} clickHandler={setGenerateState} />)}
-            { (state.randoms.length !== 0) ? "" : (
+            { (state.rolls.length === 0) ? "" :
+                state.rolls[0].die.getThrow().map(
+                    (v, i) => <DisplayButton value={v} index={i} mode={mode} clickHandler={setGenerateState} />)}
+            { (state.rolls.length !== 0) ? "" : (
               <DisplayButton value="Press Here!" index={0} mode="info" clickHandler={setGenerateState} />) }
-          <Typography color="text.secondary" sx={{marginTop: "0.5em"}}><i>[{state.min} to {state.max}{state.exclusive ? ")" : "]"}</i></Typography>
-          { (state.randoms.length === 0) ? "" : (<><Typography sx={{fontSize:"50%"}}>{state.lastTime.toString()}</Typography></>) }
+          <Typography color="text.secondary" sx={{marginTop: "0.5em"}}><i>{state.die.getRangeString(true, " to ")}</i></Typography>
+          { (state.rolls.length === 0) ? "" : (<><Typography sx={{fontSize:"50%"}}>{state.lastTime.toString()}</Typography></>) }
           </Grid>
 
-          { (state.randoms.length <= state.quantity) ? "" : (
+          { (state.rolls.length <= 1) ? "" : (
             <Grid item xs={12}>
-              <Typography noWrap color="secondary" sx={{paddingLeft:"1em", paddingRight:"1em"}}>Previous: <i>{state.randoms.slice(state.quantity,state.quantity+51).map((i) => i.value).join(", ")}</i></Typography>
+              <Typography noWrap color="secondary" sx={{paddingLeft:"1em", paddingRight:"1em"}}>
+                  Previous: <i>{ previousRandomValues().join(", ") }</i></Typography>
             </Grid>
           )}
 
@@ -291,12 +299,12 @@ function App() {
   
             <Box display="flex" flexDirection="row" flexWrap="wrap" alignItems="center" justifyContent="center">
 
-            <TextField type="number" id="set-min" size="small" value={state.min} 
+            <TextField type="number" id="set-min" size="small" value={state.die.min} 
                 label="Lowest" sx={{width:"6em"}}
                 disabled={mode==='dice'?true:false} 
                 onChange={(e) => setState(handleLimitChange(parseInt(e.target.value), "lower"))}
                 InputLabelProps={{shrink: true}} />
-            <TextField type="number" id="set-max" size="small" value={state.max} 
+            <TextField type="number" id="set-max" size="small" value={state.die.max} 
                 label="Highest" sx={{width:"6em"}}
                 disabled={mode==='dice'?true:false} 
                 onChange={(e) => setState(handleLimitChange(parseInt(e.target.value), "upper"))}
@@ -323,15 +331,20 @@ native
 
               <Box sx={{marginLeft:"1em", marginRight:"1em"}}>
             <FormControlLabel label="Exclusive" control={
-              <Checkbox checked={state.exclusive} 
+              <Checkbox checked={state.die.exclusive} 
                   disabled={mode==='dice'?true:false} 
-                  onChange={(e) => setState({...state, exclusive:e.target.checked})} 
+                  onChange={(e) => { state.die.exclusive = e.target.checked; setStateForce(state) } }
               />}
             />
             <FormControlLabel label="Zero based" control={
-              <Checkbox checked={state.zeroBase} 
+              <Checkbox checked={state.die.zerobase} 
                   disabled={mode==='dice'?true:false} 
-                  onChange={(e) => setState({...state, zeroBase:e.target.checked, min:e.target.checked?0:DEFAULT_MIN})}
+                  onChange={(e) => { 
+                        state.die.min=e.target.checked?0:DEFAULT_MIN; 
+                        state.die.zerobase = e.target.checked; 
+                        setStateForce(state)
+                      }
+                    }
               />} 
             />
 

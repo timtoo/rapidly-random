@@ -86,13 +86,25 @@ class Die {
     return [];
   }
 
-  // the minimum and maximum possible range to roll
+  // the actual possible range to roll
   // note: probabilty distribution may not be even if repeats?
-  getRange(): [number, number] {
-    let min = ((this.dice * this.mult) + this.mod) * this.repeat;
-    let max = ((this.max * this.dice * this.mult) + this.mod) * this.repeat;
+  // single: single die only (if more than one)
+  getRange(single=false): [number, number] {
+    let min = this.min
+    let max = this.max
+    if (!single) {
+      min = ((this.dice * this.mult) + this.mod) * this.repeat;
+      max = ((this.max * this.dice * this.mult) + this.mod) * this.repeat;
+    }
     if (this.exclusive) max--;
     return [min, max];
+  }
+
+  // single: range for just a single die only, 
+  // absolute: actual range, don't use exclusive indicator
+  getRangeString(single=false, separator=",", absolute=false): string {
+    const [min, max] = this.getRange(single)
+    return "[" + min + separator + ((absolute || (!this.exclusive)) ? "" + max + "]" : "" + (max+1) + ')')
   }
 
   // throw the dice, just once, return results in array

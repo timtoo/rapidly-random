@@ -22,6 +22,7 @@ const test_dice: { [key: string]: [Die, string, string?] } = {
     "4×(10d100/4+5)": [new Die(1, 100, 10, 5, 0.25, 4), "4x(10d100/4+5)", ],
     "4*(10d100/4+5)": [new Die(1, 100, 10, 5, 0.25, 4), "4x(10d100/4+5)", ],
     "4x(10d100+5/4)": [new Die(1, 100, 10, 5, 0.25, 4), "4x(10d100/4+5)", ], 
+    "2X(3d6)/2+3": [new Die(1, 6, 3, 0, 1, 2, false, false), "2x(3d6)"], // typo result
     "3xd": [new Die(1, 6, 1, 0, 1, 3), "3x(1d6)", ],
     "1d6>2": [new Die(2, 6), "", "d>2"],
     "1D5>0": [new Die(0, 5), "1d5>0", "d>5"],
@@ -128,14 +129,35 @@ it("do possible ranges look reasonable?", () => {
     expect(max).toEqual(6)
 
     d = new Die("2d6");
-    [min, max] = d.getRange()
-    expect(min).toEqual(2)
-    expect(max).toEqual(12)
+    [min, max] = d.getRange();
+    expect(min).toEqual(2);
+    expect(max).toEqual(12);
+    [min, max] = d.getRange(true);
+    expect(min).toEqual(1);
+    expect(max).toEqual(6);
 
-    d = new Die("2X(1d6)");
-    [min, max] = d.getRange()
-    expect(min).toEqual(2)
-    expect(max).toEqual(12)
+    d = new Die("2X(3d6)");
+    [min, max] = d.getRange();
+    expect(min).toEqual(6);
+    expect(max).toEqual(36);
+    [min, max] = d.getRange(true);
+    expect(min).toEqual(1);
+    expect(max).toEqual(6);
+
+    d = new Die("2X(3d6/2+3)");
+    [min, max] = d.getRange();
+    expect(min).toEqual(10);
+    expect(max).toEqual(24);
+    [min, max] = d.getRange(true);
+    expect(min).toEqual(1);
+    expect(max).toEqual(6);
+
+    // test those round ups
+    d = new Die("2d5/3+2");
+    [min, max] = d.getRange();
+    expect(min).toEqual(3);
+    expect(max).toEqual(6
+        );
 
     // TODO: could use some more complicated tests here
 
@@ -172,5 +194,7 @@ it("test randomness (sort of?? PROBABLY will work? theoretically could fail)", (
     expect(r).toContain(2)
     expect(r).not.toContain(-1)
     expect(r).not.toContain(3)    
+
+    d = new Die("2d5/3+2"); // 1-4
 
 });

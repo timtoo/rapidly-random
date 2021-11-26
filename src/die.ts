@@ -23,7 +23,7 @@ const MULTIPY_CHARS: string = "Xx×*";
 const DIVIDE_CHARS: string = "/÷";
 
 const DieRegExp = new RegExp(
-  `\\b((?<repeat>\\d+)[${MULTIPY_CHARS}]\\(?)?(?<rolls>\\d*)[dD](?<max>-?\\d*)(\>(?<min>-?\\d+))?((?<mult>[${MULTIPY_CHARS}${DIVIDE_CHARS}]\\d+)(?<mod>[+-]\\d+)|(?<mod1>[+-]\\d+)(?<mult1>[${MULTIPY_CHARS}${DIVIDE_CHARS}]\\d+)|(?<mod2>[+-]\\d+)|(?<mult2>[${MULTIPY_CHARS}${DIVIDE_CHARS}]\\d+))?(?<flag1>[xXzZ])?(?<flag2>[xXzZ])?\\b`
+  `\\b((?<repeat>\\d+)[${MULTIPY_CHARS}]\\(?)?(?<rolls>\\d*)[dD](?<max>-?\\d*)(>(?<min>-?\\d+))?((?<mult>[${MULTIPY_CHARS}${DIVIDE_CHARS}]\\d+)(?<mod>[+-]\\d+)|(?<mod1>[+-]\\d+)(?<mult1>[${MULTIPY_CHARS}${DIVIDE_CHARS}]\\d+)|(?<mod2>[+-]\\d+)|(?<mult2>[${MULTIPY_CHARS}${DIVIDE_CHARS}]\\d+))?(?<flag1>[xXzZ])?(?<flag2>[xXzZ])?\\b`
 );
 
 class Die {
@@ -93,8 +93,8 @@ class Die {
     let min = this.min
     let max = this.max
     if (!single) {
-      min = ((this.dice * this.mult) + this.mod) * this.repeat;
-      max = ((this.max * this.dice * this.mult) + this.mod) * this.repeat;
+      min = (Math.ceil(this.dice * this.mult) + this.mod) * this.repeat;
+      max = (Math.ceil(this.max * this.dice * this.mult) + this.mod) * this.repeat;
     }
     if (this.exclusive) max--;
     return [min, max];

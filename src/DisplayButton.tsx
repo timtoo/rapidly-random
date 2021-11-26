@@ -52,14 +52,33 @@ export default function DisplayButton(props: DisplayCardProps): JSX.Element {
           variant={mode === "dice" ? "text" : "outlined"}
           {...bind}
         >
-          {mode === "dice" && die.max <= 6 && value >= 1 && value <= 6 ? (
-            <Dice.Die6img
-              die={value}
-              size="5em"
-              style={{ transform: "rotate(" + Math.random() * 360 + "deg)" }}
-            />
+          {mode === "dice" && die.max <= 10 && value >= 1 && value <= 10 ? (
+            value <= 6 && die.max === 6 ? (
+              <Dice.Die6img
+                die={value}
+                size="5em"
+                alt={"" + value + " die"}
+                style={{ transform: "rotate(" + Math.random() * 360 + "deg)" }}
+              />
+            ) : (
+              <Dice.Die10img
+                die={value}
+                size="5em"
+                alt={"" + value + " die"}
+                style={{ transform: "rotate(" + (Math.random() * 90 - 45) + "deg)" }}
+              />
+            )
           ) : (
-            <Typography component="h2" variant="h2" sx={{transform:(mode === "dice" ? "rotate("+(Math.random()*40-20)+"deg)" : "none")}}>
+            <Typography
+              component="h2"
+              variant="h2"
+              sx={{
+                transform:
+                  mode === "dice"
+                    ? "rotate(" + (Math.random() * 40 - 20) + "deg)"
+                    : "none",
+              }}
+            >
               {displayValue}
             </Typography>
           )}

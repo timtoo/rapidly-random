@@ -211,10 +211,7 @@ function App() {
       values = [
         16, 32, 64, 128, 256, 1024, 2048, 4096, 9182, 65536, 1048576, 16777216,
       ];
-    if (mode === "dice")
-      values = [
-        2, 4, 6, 8, 10, 12, 20, 100
-      ];
+    if (mode === "dice") values = [2, 4, 6, 8, 10, 12, 20, 100];
 
     return (
       <>
@@ -411,11 +408,11 @@ function App() {
               </Grid>
             )}
 
-              <Grid item xs={12}>
-                <Stack direction="row" justifyContent="center" spacing={1}>
-                  <QuickButtons label="Highest Number:" />
-                </Stack>
-              </Grid>
+            <Grid item xs={12}>
+              <Stack direction="row" justifyContent="center" spacing={1}>
+                <QuickButtons label="Highest Number:" />
+              </Stack>
+            </Grid>
 
             <Grid item xs={12}>
               <Box
@@ -472,23 +469,26 @@ function App() {
                   InputLabelProps={{ shrink: true }}
                 />
 
-                <Select
-                  native
-                  size="small"
-                  label="Mode"
-                  defaultValue={mode}
-                  onChange={(e) => handleModeChange(e.target.value)}
-                  inputProps={{
-                    name: "mode",
-                    id: "mode-select",
-                  }}
-                >
-                  {MODES.map((v, i) => (
-                    <option key={i} value={v[0]}>
-                      {v[1]}
-                    </option>
-                  ))}
-                </Select>
+                <FormControl>
+                  <InputLabel htmlFor="mode-select">Mode</InputLabel>
+                  <Select
+                    native
+                    size="small"
+                    label="Mode"
+                    defaultValue={mode}
+                    onChange={(e) => handleModeChange(e.target.value)}
+                    inputProps={{
+                      name: "mode",
+                      id: "mode-select",
+                    }}
+                  >
+                    {MODES.map((v, i) => (
+                      <option key={i} value={v[0]}>
+                        {v[1]}
+                      </option>
+                    ))}
+                  </Select>
+                </FormControl>
 
                 <Box sx={{ marginLeft: "1em", marginRight: "1em" }}>
                   <FormControlLabel

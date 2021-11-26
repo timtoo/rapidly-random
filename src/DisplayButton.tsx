@@ -3,16 +3,18 @@ import { useLongPress } from "use-long-press";
 import { useState } from "react";
 import Dice from "./dicesvg";
 import { useTheme } from "@emotion/react";
+import { Die } from "./die";
 
 type DisplayCardProps = {
   value: number | string;
   index: number;
   mode: string;
+  die: Die;
   clickHandler: any;
 };
 
 export default function DisplayButton(props: DisplayCardProps): JSX.Element {
-  const { value, index, mode, clickHandler } = props;
+  const { value, index, mode, die, clickHandler } = props;
   const [ttopen, setTtopen] = useState(false);
   const padding: string =
     mode === "dice" ? "1em 3em 1em 3em" : "1em 4em 1em 4em";
@@ -50,14 +52,14 @@ export default function DisplayButton(props: DisplayCardProps): JSX.Element {
           variant={mode === "dice" ? "text" : "outlined"}
           {...bind}
         >
-          {mode === "dice" && value >= 1 && value <= 6 ? (
+          {mode === "dice" && die.max <= 6 && value >= 1 && value <= 6 ? (
             <Dice.Die6img
               die={value}
               size="5em"
               style={{ transform: "rotate(" + Math.random() * 360 + "deg)" }}
             />
           ) : (
-            <Typography component="h2" variant="h2">
+            <Typography component="h2" variant="h2" sx={{transform:(mode === "dice" ? "rotate("+(Math.random()*40-20)+"deg)" : "none")}}>
               {displayValue}
             </Typography>
           )}

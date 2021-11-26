@@ -211,6 +211,10 @@ function App() {
       values = [
         16, 32, 64, 128, 256, 1024, 2048, 4096, 9182, 65536, 1048576, 16777216,
       ];
+    if (mode === "dice")
+      values = [
+        2, 4, 6, 8, 10, 12, 20, 100
+      ];
 
     return (
       <>
@@ -359,6 +363,7 @@ function App() {
                   value={v}
                   index={i}
                   mode={mode}
+                  die={state.die}
                   clickHandler={setGenerateState}
                 />
               ))}
@@ -369,6 +374,7 @@ function App() {
                   value="Press Here!"
                   index={0}
                   mode="info"
+                  die={state.die}
                   clickHandler={setGenerateState}
                 />
               )}
@@ -405,15 +411,11 @@ function App() {
               </Grid>
             )}
 
-            {mode === "dice" ? (
-              ""
-            ) : (
               <Grid item xs={12}>
                 <Stack direction="row" justifyContent="center" spacing={1}>
                   <QuickButtons label="Highest Number:" />
                 </Stack>
               </Grid>
-            )}
 
             <Grid item xs={12}>
               <Box

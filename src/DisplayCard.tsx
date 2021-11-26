@@ -10,16 +10,18 @@ import {
 } from "@mui/material";
 import { useLongPress } from "use-long-press";
 import Dice from "./dicesvg";
+import { Die } from "./die";
 
 type DisplayCardProps = {
   value: number | string;
   index: number;
   mode: string;
+  die: Die;
   clickHandler: any;
 };
 
 export default function DisplayCard(props: DisplayCardProps): JSX.Element {
-  const { value, index, mode, clickHandler } = props;
+  const { value, index, mode, die, clickHandler } = props;
   const [ttopen, setTtopen] = useState(false);
   const padding: string =
     mode === "dice" ? "1em 3em 1em 3em" : "1em 4em 1em 4em";
@@ -65,7 +67,7 @@ export default function DisplayCard(props: DisplayCardProps): JSX.Element {
             sx={{ padding: padding, verticalAlign: "middle", height: "100%" }}
           >
             <CardContent>
-              {mode === "dice" && value >= 1 && value <= 6 ? (
+              {mode === "dice" && die.max === 6 && value >= 1 && value <= 6 ? (
                 <Dice.Die6img
                   die={value}
                   size="5em"

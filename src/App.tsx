@@ -21,12 +21,20 @@ import {
   Tooltip,
   Chip,
   Avatar,
+  FormLabel,
 } from "@mui/material";
 import { ThemeProvider } from "@mui/system";
 import { theme1 } from "./themes";
 import Dice from "./dicesvg";
 import { useLongPress } from "use-long-press";
-import { Computer, InfoOutlined, Looks6, Hexagon, HexagonOutlined } from "@mui/icons-material";
+import {
+  Computer,
+  InfoOutlined,
+  Looks6,
+  Hexagon,
+  HexagonOutlined,
+  ModeEdit,
+} from "@mui/icons-material";
 import { Die } from "./die";
 import DisplayCard from "./DisplayCard";
 import DisplayButton from "./DisplayButton";
@@ -40,10 +48,22 @@ const DEFAULT_MAX: number = 10;
 const MAX_QUANTITY: number = 100;
 const MAX_HISTORY: number = MAX_QUANTITY * 5;
 
+enum MODE {
+  default,
+  dice,
+  hex,
+}
+
+const MODES: [number, string][] = [
+  [0, "Normal"],
+  [1, "Dice"],
+  [2, "Hex"],
+];
+
 type rollHistoryType = {
   label: string;
   die: Die;
-  mode: string;
+  mode: MODE;
   time: Date;
 };
 
@@ -53,9 +73,9 @@ type saveStateDictType = {
 
 type stateType = {
   die: Die;
-  rolls: rollHistoryType[];    // history of actual rolls (random results)
+  rolls: rollHistoryType[]; // history of actual rolls (random results)
   lastTime: Date;
-  history: rollHistoryType[];  // mode/range history
+  history: rollHistoryType[]; // mode/range history
   newQuantity: number;
   needUpdate: number;
 };
@@ -78,16 +98,10 @@ const initState: stateType = {
   needUpdate: 0,
 };
 
-const MODES: string[][] = [
-  ["default", "Normal"],
-  ["dice", "Dice"],
-  ["hex", "Hex"],
-];
-
 // generate new randoms numbers to the front of the history list
 function generate(
   state: stateType,
-  mode: string,
+  mode: MODE,
   min?: number,
   max?: number
 ): stateType {
@@ -113,7 +127,9 @@ function generate(
   if (newState.rolls.length > MAX_HISTORY) newState.rolls.pop();
 
   // add die to front of prevoius range list (removing duplicates)
-  const prev_index = newState.history.findIndex((i) => i.label === newState.rolls[0].label && i.mode === mode);
+  const prev_index = newState.history.findIndex(
+    (i) => i.label === newState.rolls[0].label && i.mode === mode
+  );
   if (prev_index >= 0) newState.history.splice(prev_index, 1);
   newState.history.unshift(newState.rolls[0]);
 
@@ -126,7 +142,7 @@ const saveStateDictInit: saveStateDictType = {};
 function App() {
   function handleQuantityKeys(amount: number) {
     console.log("up " + mode);
-    if (mode !== "dice") {
+    if (mode !== MODE.dice) {
       const control = quantityInputRef?.current as HTMLInputElement;
       control.value = "" + (+control.value + amount);
       setState((o) => ({ ...o, newQuantity: state.newQuantity - 1 }));
@@ -134,7 +150,7 @@ function App() {
   }
 
   const [state, setState] = useState(initState);
-  const [mode, setMode] = useState("default");
+  const [mode, setMode] = useState(MODE.default);
   const [prevModeState, setPrevModeState] = useState(saveStateDictInit);
   const [ttopen, setttopen] = useState(false);
   const [consoleState, setConsoleState] = useState(false);
@@ -145,9 +161,9 @@ function App() {
   //this is causing state update loop with the input field
   //useHotkeys('up', () => handleQuantityKeys(1));
   //  useHotkeys('down', () => setState({...state, newQuantity: state.newQuantity-1}));
-  useHotkeys("h", () => setState(handleModeChange("hex")));
-  useHotkeys("d", () => setState(handleModeChange("dice")));
-  useHotkeys("n", () => setState(handleModeChange("normal")));
+  useHotkeys("h", () => setState(handleModeChange(MODE.hex)));
+  useHotkeys("d", () => setState(handleModeChange(MODE.dice)));
+  useHotkeys("n", () => setState(handleModeChange(MODE.default)));
   useHotkeys("enter", () => setState(generate(state, mode)));
 
   // wrapper to force state update (which might otherwise go unnoticed)
@@ -208,15 +224,18 @@ function App() {
     let values: number[] = [
       2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 30, 50, 100, 256, 1000, 1000000,
     ];
-    if (mode === "hex")
+    if (mode === MODE.hex)
       values = [
         16, 32, 64, 128, 256, 1024, 2048, 4096, 9182, 65536, 1048576, 16777216,
       ];
-    if (mode === "dice") values = [2, 4, 6, 8, 10, 12, 20, 100];
+    if (mode === MODE.dice) values = [2, 4, 6, 8, 10, 12, 20, 100];
 
     return (
       <>
-        <Typography>{props.label}</Typography>
+        <Typography color="text.secondary" fontSize="small">
+          {props.label}
+        </Typography>
+        <br />
         <Box sx={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
           {values.map((v) => (
             <Button
@@ -238,8 +257,8 @@ function App() {
     event: React.MouseEvent<HTMLElement>,
     value: rollHistoryType
   ) {
-    const newState = handleModeChange(value.mode)
-    newState.die = value.die.clone()
+    const newState = handleModeChange(value.mode);
+    newState.die = value.die.clone();
     setState(generate(newState, value.mode));
   }
 
@@ -256,10 +275,16 @@ function App() {
           {values.map((v) => (
             <Chip
               key={v.label}
-              variant={undefined}              
+              variant={undefined}
               sx={{ marginRight: "0.3em", textTransform: "none" }}
               onClick={(e) => handleHistButton(e, v)}
-              icon={v.mode === 'hex' ? <HexagonOutlined/> : v.mode === "dice" ? <Looks6/> : undefined}
+              icon={
+                v.mode === MODE.hex ? (
+                  <HexagonOutlined />
+                ) : v.mode === MODE.dice ? (
+                  <Looks6 />
+                ) : undefined
+              }
               size="small"
               color={"secondary"}
               label={v.label}
@@ -283,25 +308,25 @@ function App() {
     return [];
   }
 
-  function handleModeChange(value: string): stateType {
+  function handleModeChange(value: MODE): stateType {
     //console.log("mode change: ", value)
-    //console.log(MODES.map(i=>i[0]))
+    //console.log(MODES.map(i=>i[0]))nod
 
     let newState: stateType = { ...state };
 
     // store previous mode settings
-    if (MODES.find((e) => e[0] === mode)) {
+    if (value in MODE) {
       setPrevModeState({ ...prevModeState, [mode]: state.die });
       setMode(value);
 
       if (value in prevModeState) {
         newState.die = prevModeState[value];
       } else {
-        if (value === "dice") {
+        if (value === MODE.dice) {
           // nothing else makes sense for dice at this point
           newState.die = new Die(1, 6);
           newState = generate(newState, mode);
-        } else if (value == "hex") {
+        } else if (value == MODE.hex) {
           newState.die = new Die(0, 256);
           newState.die.exclusive = true;
           newState.die.zerobase = true;
@@ -363,7 +388,7 @@ function App() {
                 <DisplayButton
                   value="Press Here!"
                   index={0}
-                  mode="info"
+                  mode={MODE.default}
                   die={state.die}
                   clickHandler={setGenerateState}
                 />
@@ -422,7 +447,7 @@ function App() {
                   value={state.die.min}
                   label="Lowest"
                   sx={{ width: "6em" }}
-                  disabled={mode === "dice" ? true : false}
+                  disabled={mode === MODE.dice ? true : false}
                   onChange={(e) =>
                     setState(
                       handleLimitChange(parseInt(e.target.value), "lower")
@@ -437,7 +462,7 @@ function App() {
                   value={state.die.max}
                   label="Highest"
                   sx={{ width: "6em" }}
-                  disabled={mode === "dice" ? true : false}
+                  disabled={mode === MODE.dice ? true : false}
                   onChange={(e) =>
                     setState(
                       handleLimitChange(parseInt(e.target.value), "upper")
@@ -469,7 +494,11 @@ function App() {
                     size="small"
                     label="Mode"
                     defaultValue={mode}
-                    onChange={(e) => setState(handleModeChange(e.target.value))}
+                    onChange={(e) => {
+                      setState(
+                        handleModeChange(parseInt(e.target.value as string))
+                      );
+                    }}
                     inputProps={{
                       name: "mode",
                       id: "mode-select",
@@ -489,7 +518,7 @@ function App() {
                     control={
                       <Checkbox
                         checked={state.die.exclusive}
-                        disabled={mode === "dice" ? true : false}
+                        disabled={mode === MODE.dice ? true : false}
                         onChange={(e) => {
                           state.die.exclusive = e.target.checked;
                           setStateForce(state);
@@ -502,7 +531,7 @@ function App() {
                     control={
                       <Checkbox
                         checked={state.die.zerobase}
-                        disabled={mode === "dice" ? true : false}
+                        disabled={mode === MODE.dice ? true : false}
                         onChange={(e) => {
                           state.die.min = e.target.checked ? 0 : DEFAULT_MIN;
                           state.die.zerobase = e.target.checked;
@@ -520,10 +549,7 @@ function App() {
             ) : (
               <Grid item xs={12}>
                 <Stack direction="row" justifyContent="center" spacing={1}>
-                  <HistoryButtons
-                    label="History:"
-                    values={state.history}
-                  />
+                  <HistoryButtons label="History:" values={state.history} />
                 </Stack>
               </Grid>
             )}

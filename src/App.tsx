@@ -20,12 +20,13 @@ import {
   Grow,
   Tooltip,
   Chip,
+  Avatar,
 } from "@mui/material";
 import { ThemeProvider } from "@mui/system";
 import { theme1 } from "./themes";
 import Dice from "./dicesvg";
 import { useLongPress } from "use-long-press";
-import { Computer, InfoOutlined } from "@mui/icons-material";
+import { Computer, InfoOutlined, Looks6, Hexagon, HexagonOutlined } from "@mui/icons-material";
 import { Die } from "./die";
 import DisplayCard from "./DisplayCard";
 import DisplayButton from "./DisplayButton";
@@ -52,9 +53,9 @@ type saveStateDictType = {
 
 type stateType = {
   die: Die;
-  rolls: rollHistoryType[];
+  rolls: rollHistoryType[];    // history of actual rolls (random results)
   lastTime: Date;
-  previousRange: string[];
+  history: rollHistoryType[];  // mode/range history
   newQuantity: number;
   needUpdate: number;
 };
@@ -72,7 +73,7 @@ const initState: stateType = {
   ),
   rolls: [],
   lastTime: new Date(),
-  previousRange: [],
+  history: [],
   newQuantity: DEFAULT_QUANTITY, // don't change quanity directly or will
   needUpdate: 0,
 };
@@ -112,9 +113,9 @@ function generate(
   if (newState.rolls.length > MAX_HISTORY) newState.rolls.pop();
 
   // add die to front of prevoius range list (removing duplicates)
-  const prev_index = newState.previousRange.indexOf(newState.rolls[0].label);
-  if (prev_index >= 0) newState.previousRange.splice(prev_index, 1);
-  newState.previousRange.unshift(newState.rolls[0].label);
+  const prev_index = newState.history.findIndex((i) => i.label === newState.rolls[0].label && i.mode === mode);
+  if (prev_index >= 0) newState.history.splice(prev_index, 1);
+  newState.history.unshift(newState.rolls[0]);
 
   newState.lastTime = newState.rolls[0].time;
   return newState;
@@ -144,9 +145,9 @@ function App() {
   //this is causing state update loop with the input field
   //useHotkeys('up', () => handleQuantityKeys(1));
   //  useHotkeys('down', () => setState({...state, newQuantity: state.newQuantity-1}));
-  useHotkeys("h", () => handleModeChange("hex"));
-  useHotkeys("d", () => handleModeChange("dice"));
-  useHotkeys("n", () => handleModeChange("normal"));
+  useHotkeys("h", () => setState(handleModeChange("hex")));
+  useHotkeys("d", () => setState(handleModeChange("dice")));
+  useHotkeys("n", () => setState(handleModeChange("normal")));
   useHotkeys("enter", () => setState(generate(state, mode)));
 
   // wrapper to force state update (which might otherwise go unnoticed)
@@ -235,24 +236,16 @@ function App() {
 
   function handleHistButton(
     event: React.MouseEvent<HTMLElement>,
-    value: string
+    value: rollHistoryType
   ) {
-    const i = state.rolls.findIndex((v, i) => v.label === value);
-    let newmode = mode;
-    if (i >= 0) {
-      // XXX mode isn't updated on dropdown
-      newmode = state.rolls[i].mode;
-      setMode(newmode);
-      state.die = state.rolls[i].die.clone();
-    } else {
-      state.die = new Die(value);
-    }
-    setState(generate(state, newmode));
+    const newState = handleModeChange(value.mode)
+    newState.die = value.die.clone()
+    setState(generate(newState, value.mode));
   }
 
   function HistoryButtons(props: {
     label: string;
-    values: string[];
+    values: rollHistoryType[];
   }): JSX.Element {
     const { label, values } = props;
 
@@ -261,16 +254,16 @@ function App() {
         <Typography>{label}</Typography>
         <Box sx={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
           {values.map((v) => (
-            <Button
-              key={v}
-              variant="contained"
-              sx={{ margin: "1px", textTransform: "none" }}
+            <Chip
+              key={v.label}
+              variant={undefined}              
+              sx={{ marginRight: "0.3em", textTransform: "none" }}
               onClick={(e) => handleHistButton(e, v)}
+              icon={v.mode === 'hex' ? <HexagonOutlined/> : v.mode === "dice" ? <Looks6/> : undefined}
               size="small"
               color={"secondary"}
-            >
-              {v}
-            </Button>
+              label={v.label}
+            />
           ))}
         </Box>
       </>
@@ -290,7 +283,7 @@ function App() {
     return [];
   }
 
-  function handleModeChange(value: string) {
+  function handleModeChange(value: string): stateType {
     //console.log("mode change: ", value)
     //console.log(MODES.map(i=>i[0]))
 
@@ -316,10 +309,10 @@ function App() {
           newState.die = new Die(DEFAULT_MIN, DEFAULT_MAX, DEFAULT_QUANTITY);
         }
       }
-      setState(newState);
     } else {
       console.log("error: unknown mode: " + value);
     }
+    return newState;
   }
 
   // extract simple list from history of die objects
@@ -476,7 +469,7 @@ function App() {
                     size="small"
                     label="Mode"
                     defaultValue={mode}
-                    onChange={(e) => handleModeChange(e.target.value)}
+                    onChange={(e) => setState(handleModeChange(e.target.value))}
                     inputProps={{
                       name: "mode",
                       id: "mode-select",
@@ -522,14 +515,14 @@ function App() {
               </Box>
             </Grid>
 
-            {state.previousRange.length <= 0 ? (
+            {state.history.length <= 0 ? (
               ""
             ) : (
               <Grid item xs={12}>
                 <Stack direction="row" justifyContent="center" spacing={1}>
                   <HistoryButtons
                     label="History:"
-                    values={state.previousRange}
+                    values={state.history}
                   />
                 </Stack>
               </Grid>

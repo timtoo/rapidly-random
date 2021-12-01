@@ -34,6 +34,7 @@ import {
   Hexagon,
   HexagonOutlined,
   ModeEdit,
+  Looks6Outlined,
 } from "@mui/icons-material";
 import { Die } from "./die";
 import DisplayCard from "./DisplayCard";
@@ -172,6 +173,15 @@ function App() {
     setState(newState);
   }
 
+  function handleHistButton(
+    event: React.MouseEvent<HTMLElement>,
+    value: rollHistoryType
+  ) {
+    const newState = handleModeChange(value.mode);
+    newState.die = value.die.clone();
+    setState(generate(newState, value.mode));
+  }
+
   // make sure the limit values are sane, then update state
   function handleLimitChange(
     value: number,
@@ -220,6 +230,38 @@ function App() {
     setState(generate(newState, mode));
   }
 
+  function handleModeChange(value: MODE): stateType {
+    //console.log("mode change: ", value)
+    //console.log(MODES.map(i=>i[0]))nod
+
+    let newState: stateType = { ...state };
+
+    // store previous mode settings
+    if (value in MODE && value !== mode) {
+      setPrevModeState({ ...prevModeState, [mode]: state.die });
+      setMode(value);
+
+      if (value in prevModeState) {
+        newState.die = prevModeState[value];
+      } else {
+        if (value === MODE.dice) {
+          // nothing else makes sense for dice at this point
+          newState.die = new Die(1, 6);
+          //newState = generate(newState, mode);
+        } else if (value == MODE.hex) {
+          newState.die = new Die(0, 256);
+          newState.die.exclusive = true;
+          newState.die.zerobase = true;
+        } else {
+          newState.die = new Die(DEFAULT_MIN, DEFAULT_MAX, DEFAULT_QUANTITY);
+        }
+      }
+    } else {
+      console.log("error: unknown mode: " + value);
+    }
+    return newState;
+  }
+
   function QuickButtons(props: { label: string }): JSX.Element {
     let values: number[] = [
       2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 30, 50, 100, 256, 1000, 1000000,
@@ -253,15 +295,6 @@ function App() {
     );
   }
 
-  function handleHistButton(
-    event: React.MouseEvent<HTMLElement>,
-    value: rollHistoryType
-  ) {
-    const newState = handleModeChange(value.mode);
-    newState.die = value.die.clone();
-    setState(generate(newState, value.mode));
-  }
-
   function HistoryButtons(props: {
     label: string;
     values: rollHistoryType[];
@@ -272,9 +305,9 @@ function App() {
       <>
         <Typography>{label}</Typography>
         <Box sx={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
-          {values.map((v) => (
+          {values.map((v, i) => (
             <Chip
-              key={v.label}
+              key={i}
               variant={undefined}
               sx={{ marginRight: "0.3em", textTransform: "none" }}
               onClick={(e) => handleHistButton(e, v)}
@@ -282,7 +315,7 @@ function App() {
                 v.mode === MODE.hex ? (
                   <HexagonOutlined />
                 ) : v.mode === MODE.dice ? (
-                  <Looks6 />
+                  <Looks6Outlined />
                 ) : undefined
               }
               size="small"
@@ -308,40 +341,8 @@ function App() {
     return [];
   }
 
-  function handleModeChange(value: MODE): stateType {
-    //console.log("mode change: ", value)
-    //console.log(MODES.map(i=>i[0]))nod
-
-    let newState: stateType = { ...state };
-
-    // store previous mode settings
-    if (value in MODE) {
-      setPrevModeState({ ...prevModeState, [mode]: state.die });
-      setMode(value);
-
-      if (value in prevModeState) {
-        newState.die = prevModeState[value];
-      } else {
-        if (value === MODE.dice) {
-          // nothing else makes sense for dice at this point
-          newState.die = new Die(1, 6);
-          newState = generate(newState, mode);
-        } else if (value == MODE.hex) {
-          newState.die = new Die(0, 256);
-          newState.die.exclusive = true;
-          newState.die.zerobase = true;
-        } else {
-          newState.die = new Die(DEFAULT_MIN, DEFAULT_MAX, DEFAULT_QUANTITY);
-        }
-      }
-    } else {
-      console.log("error: unknown mode: " + value);
-    }
-    return newState;
-  }
-
   // extract simple list from history of die objects
-  function previousRandomValues(limit = 50): number[] {
+  function getPreviousRandomValues(limit = 50): number[] {
     let result = [];
     for (const r of state.rolls.slice(1)) {
       for (const v of r.die.getThrow()) {
@@ -421,7 +422,7 @@ function App() {
                   color="secondary"
                   sx={{ paddingLeft: "1em", paddingRight: "1em" }}
                 >
-                  Previous: <i>{previousRandomValues().join(", ")}</i>
+                  Previous: <i>{getPreviousRandomValues().join(", ")}</i>
                 </Typography>
               </Grid>
             )}

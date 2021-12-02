@@ -41,6 +41,7 @@ import DisplayButton from "./DisplayButton";
 import { useTheme } from "@emotion/react";
 import ConsoleDialog from "./ConsoleDialog";
 import { useHotkeys } from "react-hotkeys-hook";
+import TextNumber from "./TextNumber";
 
 const DEFAULT_QUANTITY: number = 1;
 const DEFAULT_MIN: number = 1;
@@ -178,6 +179,7 @@ function App() {
     type: "lower" | "upper_reset" | "upper"
   ): stateType {
     const newState: stateType = { ...state };
+    console.log("handlellimit")
 
     // make sure lower
     if (type === "lower") {
@@ -440,6 +442,16 @@ function App() {
                 alignItems="center"
                 justifyContent="center"
               >
+            <TextNumber id="test" label="Test" size="small" width="8em" 
+            value={state.die.min} 
+                  dis={mode === MODE.dice}
+                  onChange={(e) =>
+                    setState(
+                      handleLimitChange(parseInt(e.target.value), "lower")
+                    )
+                  }
+            
+            />
                 <TextField
                   type="number"
                   id="set-min"

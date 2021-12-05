@@ -152,8 +152,8 @@ function App() {
 
   const [state, setState] = useState(initState);
   const [mode, setMode] = useState(MODE.default);
-  const [prevModeState, setPrevModeState] = useState(saveStateDictInit); // 
-  const [ttopen, setttopen] = useState(false);  // hint tooltip
+  const [prevModeState, setPrevModeState] = useState(saveStateDictInit); //
+  const [ttopen, setttopen] = useState(false); // hint tooltip
   const [consoleState, setConsoleState] = useState(false);
   const [pressRequired, setPressRequired] = useState(true);
   const consoleInputRef = useRef<HTMLInputElement | null>(null);
@@ -379,24 +379,25 @@ function App() {
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12}>
-              { pressRequired ?
+              {pressRequired ? (
                 <DisplayButton
-                value="Press Here!"
-                index={0}
-                mode={mode}
-                die={state.die}
-                clickHandler={setGenerateState}
-              />
-              :
-              getThrow().map((v, i) => (
-                <DisplayButton
-                  value={v}
-                  index={i}
+                  value="Press Here!"
+                  index={0}
                   mode={mode}
                   die={state.die}
                   clickHandler={setGenerateState}
                 />
-              ))}
+              ) : (
+                getThrow().map((v, i) => (
+                  <DisplayButton
+                    value={v}
+                    index={i}
+                    mode={mode}
+                    die={state.die}
+                    clickHandler={setGenerateState}
+                  />
+                ))
+              )}
               <Typography color="text.secondary" sx={{ marginTop: "0.5em" }}>
                 <i>
                   {getThrow().length > 1
@@ -452,11 +453,12 @@ function App() {
                   label="Lowest"
                   sx={{ width: "6em" }}
                   disabled={mode === MODE.dice ? true : false}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    setPressRequired(true);
                     setState(
                       handleLimitChange(parseInt(e.target.value), "lower")
-                    )
-                  }
+                    );
+                  }}
                   InputLabelProps={{ shrink: true }}
                 />
                 <TextField
@@ -467,11 +469,12 @@ function App() {
                   label="Highest"
                   sx={{ width: "6em" }}
                   disabled={mode === MODE.dice ? true : false}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    setPressRequired(true);
                     setState(
                       handleLimitChange(parseInt(e.target.value), "upper")
-                    )
-                  }
+                    );
+                  }}
                   InputLabelProps={{ shrink: true }}
                 />
                 <TextField
@@ -483,6 +486,7 @@ function App() {
                   label="Quantity"
                   sx={{ width: "6em" }}
                   onChange={(e) => {
+                    setPressRequired(true);
                     setState((o) => ({
                       ...o,
                       newQuantity: parseInt(e.target.value) || DEFAULT_QUANTITY,

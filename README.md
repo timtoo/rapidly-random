@@ -8,10 +8,11 @@ http://timtoo.github.io/rapidly-random
 ## About the console
 
 I had the idea of implementing a game console inspired text input mode using
-standard old Dungeons & Dragons dice notation. Turns out there's a Wikipedia
+standard old Dungeons & Dragons dice notation. Just as a sort of joke. But it 
+could be useful? Turns out there's a Wikipedia
 article on [dice notation](https://en.wikipedia.org/wiki/Dice_notation), which
 maybe I really should do more than glance at... but then I may find I may need a
-full blown resursive descent parser! Maybe just more fudges than anticipated,
+full blown *resursive descent parser*! Maybe just more fudges than anticipated,
 would do? Yeah, yeah, RegEx is fine.
 
 More importantly (?), is there some way to extend the notation to encapsulate

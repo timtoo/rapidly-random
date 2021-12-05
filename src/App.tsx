@@ -152,9 +152,10 @@ function App() {
 
   const [state, setState] = useState(initState);
   const [mode, setMode] = useState(MODE.default);
-  const [prevModeState, setPrevModeState] = useState(saveStateDictInit);
-  const [ttopen, setttopen] = useState(false);
+  const [prevModeState, setPrevModeState] = useState(saveStateDictInit); // 
+  const [ttopen, setttopen] = useState(false);  // hint tooltip
   const [consoleState, setConsoleState] = useState(false);
+  const [pressRequired, setPressRequired] = useState(true);
   const consoleInputRef = useRef<HTMLInputElement | null>(null);
   const quantityInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -179,6 +180,7 @@ function App() {
   ) {
     const newState = handleModeChange(value.mode);
     newState.die = value.die.clone();
+    setPressRequired(false);
     setState(generate(newState, value.mode));
   }
 
@@ -227,6 +229,7 @@ function App() {
     value: number
   ) {
     const newState = handleLimitChange(value, "upper_reset");
+    setPressRequired(false);
     setState(generate(newState, mode));
   }
 
@@ -259,6 +262,7 @@ function App() {
     } else {
       console.log("error: unknown mode: " + value);
     }
+    setPressRequired(true);
     return newState;
   }
 
@@ -330,6 +334,7 @@ function App() {
 
   function setGenerateState() {
     console.log("set-generate-state");
+    setPressRequired(false);
     setState(generate(state, mode));
   }
 
@@ -374,7 +379,16 @@ function App() {
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12}>
-              {getThrow().map((v, i) => (
+              { pressRequired ?
+                <DisplayButton
+                value="Press Here!"
+                index={0}
+                mode={mode}
+                die={state.die}
+                clickHandler={setGenerateState}
+              />
+              :
+              getThrow().map((v, i) => (
                 <DisplayButton
                   value={v}
                   index={i}
@@ -383,17 +397,6 @@ function App() {
                   clickHandler={setGenerateState}
                 />
               ))}
-              {state.rolls.length !== 0 ? (
-                ""
-              ) : (
-                <DisplayButton
-                  value="Press Here!"
-                  index={0}
-                  mode={MODE.default}
-                  die={state.die}
-                  clickHandler={setGenerateState}
-                />
-              )}
               <Typography color="text.secondary" sx={{ marginTop: "0.5em" }}>
                 <i>
                   {getThrow().length > 1

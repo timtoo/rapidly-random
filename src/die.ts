@@ -12,15 +12,15 @@ Note on `results` array.
 
 */
 
-const DEFAULT_MIN: number = 1;
-const DEFAULT_MAX: number = 6;
-const DEFAULT_DICE: number = 1;
-const DEFAULT_MULT: number = 1;
-const DEFAULT_MOD: number = 0;
-const DEFAULT_REPEAT: number = 1;
+const DEFAULT_MIN = 1;
+const DEFAULT_MAX = 6;
+const DEFAULT_DICE = 1;
+const DEFAULT_MULT = 1;
+const DEFAULT_MOD = 0;
+const DEFAULT_REPEAT = 1;
 
-const MULTIPY_CHARS: string = "Xx×*";
-const DIVIDE_CHARS: string = "/÷";
+const MULTIPY_CHARS = 'Xx×*';
+const DIVIDE_CHARS = '/÷';
 
 const DieRegExp = new RegExp(
   `\\b((?<repeat>\\d+)[${MULTIPY_CHARS}]\\(?)?(?<rolls>\\d*)[dD](?<max>-?\\d*)(>(?<min>-?\\d+))?((?<mult>[${MULTIPY_CHARS}${DIVIDE_CHARS}]\\d+)(?<mod>[+-]\\d+)|(?<mod1>[+-]\\d+)(?<mult1>[${MULTIPY_CHARS}${DIVIDE_CHARS}]\\d+)|(?<mod2>[+-]\\d+)|(?<mult2>[${MULTIPY_CHARS}${DIVIDE_CHARS}]\\d+))?(?<flag1>[xXzZ])?(?<flag2>[xXzZ])?\\b`
@@ -66,7 +66,7 @@ class Die {
     this.parsedText = "";
 
     if (typeof min === "string") {
-      let result = this.parse(min);
+      const result = this.parse(min);
       if (result === null) throw new Error("Invalid dice notation");
     } else {
       this.min = min;
@@ -109,8 +109,8 @@ class Die {
 
   // throw the dice, just once, return results in array
   throw(): number[] {
-    let row: number[] = [0];
-    let upper = this.exclusive ? this.max : this.max + 1;
+    const row: number[] = [0];
+    const upper = this.exclusive ? this.max : this.max + 1;
 
     for (let i=0; i<this.dice; i++) {
       row.push(Math.floor(Math.random() * (upper - this.min)) + this.min);
@@ -223,7 +223,7 @@ class Die {
       if (this.min > this.max) [this.min, this.max] = [this.max, this.min];
 
       this.mult = DEFAULT_MULT;
-      let mult: string | undefined =
+      const mult: string | undefined =
         match.groups?.mult2 || match.groups?.mult1 || match.groups?.mult;
       if (mult) {
         DIVIDE_CHARS.indexOf(mult[0]) >= 0

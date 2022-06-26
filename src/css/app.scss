@@ -1,1 +1,27 @@
 // app global css in SCSS form
+
+body {
+    background-color: $background;
+    color: $grey-2;
+}
+
+.rr-big-btn {
+    color: $primary;
+    min-width: 2.6em;
+}
+
+.rr-qb {
+    background: $primary;
+    color: $background;
+    margin-right: 2px;
+}
+.rr-qb-selected {
+    background: $secondary;
+    color: black;
+}
+
+.rr-card {
+    background-color: $primary;
+    border-color: black;
+    
+}

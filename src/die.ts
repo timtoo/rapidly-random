@@ -1,5 +1,15 @@
 /* Handle dice notation parsing and rolls 
 
+Most basic use for a number between 1 and 10:
+
+`const random_number = new Die(1,10).roll().result`
+
+Roll three six sided dice:
+
+`const die = new Die('3d6').roll()`
+
+Then `die.result` will hold the rolled total, and `die.results` is an array with individual values.
+
 See: [Dice notation](https://en.wikipedia.org/wiki/Dice_notation)
 
 For details on our extensions, see README.md

@@ -29,7 +29,7 @@ export default function DisplayButton(props: DisplayCardProps): JSX.Element {
     (e, v = displayValue) => {
       e?.preventDefault();
       setTtopen(true);
-      navigator.clipboard.writeText(displayValue);
+      navigator.clipboard.writeText(displayValue); 
     },
     {
       captureEvent: true,

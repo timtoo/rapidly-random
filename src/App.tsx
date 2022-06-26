@@ -49,37 +49,6 @@ const DEFAULT_MAX: number = 10;
 const MAX_QUANTITY: number = 100;
 const MAX_HISTORY: number = MAX_QUANTITY * 5;
 
-enum MODE {
-  default,
-  dice,
-  hex,
-}
-
-const MODES: [number, string][] = [
-  [0, "Normal"],
-  [1, "Dice"],
-  [2, "Hex"],
-];
-
-type rollHistoryType = {
-  label: string;
-  die: Die;
-  mode: MODE;
-  time: Date;
-};
-
-type saveStateDictType = {
-  [key: string]: Die;
-};
-
-type stateType = {
-  die: Die;
-  rolls: rollHistoryType[]; // history of actual rolls (random results)
-  lastTime: Date;
-  history: rollHistoryType[]; // mode/range history
-  newQuantity: number;
-  needUpdate: number;
-};
 
 const initState: stateType = {
   die: new Die(

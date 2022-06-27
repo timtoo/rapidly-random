@@ -19,6 +19,10 @@
         v-on:on-quick-button="(v:number) => handleQuickButton(v)"
       ></quick-buttons>
     </div>
+    <div class="row justify-center items-start">
+      <previous-rolls :rolls="rolls"></previous-rolls>
+    </div>
+
   </q-page>
 </template>
 
@@ -30,6 +34,7 @@ import {
 } from 'components/models';
 import QuickButtons from 'components/QuickButtons.vue';
 import RollDisplay from 'components/RollDisplay.vue';
+import PreviousRolls from 'components/PreviousRolls.vue';
 import { Die } from 'src/die';
 
 const DEFAULT_QUANTITY = 1;
@@ -38,7 +43,9 @@ const DEFAULT_MAX = 10;
 const MAX_QUANTITY = 100;
 const MAX_HISTORY = MAX_QUANTITY * 5;
 
-// generate new randoms numbers to the front of the history list
+// generate new randoms numbers based on the current die
+// update roll histories
+// return a new cloned, but unrolled, die
 function letsroll(
   die: Die,
   mode: MODE,
@@ -78,9 +85,10 @@ function letsroll(
   return newDie;
 }
 
+
 export default defineComponent({
   name: 'IndexPage',
-  components: { QuickButtons, RollDisplay },
+  components: { QuickButtons, RollDisplay, PreviousRolls },
   setup() {
 
     const _rolls: rollHistoryType[] = [];

@@ -8,7 +8,7 @@
         {{ lastRoll ? lastRoll.die.getRangeString(true, ' to ') : "&nbsp;" }}
       </i>
     </div>
-    <div class="row justify-center items-start">
+    <div class="row justify-center">
       <i style="font-size: 60%"> {{ lastRoll ? lastRoll.time.toLocaleString() : "&nbsp;" }} </i>
     </div>
     <div class="row justify-center q-mt-md">
@@ -16,11 +16,14 @@
         label="Quick Roll:"
         :mode="mode"
         :current="die.max"
-        v-on:on-quick-button="(v:number) => handleQuickButton(v)"
+        @on-quick-button="(v:number) => handleQuickButton(v)"
       ></quick-buttons>
     </div>
     <div class="row justify-center items-start">
       <previous-rolls :rolls="rolls"></previous-rolls>
+    </div>
+  <div class="row justify-center">
+      <history-list :rolls="rolls" @on-die-chip="(v) => handleChipClick(v) "></history-list>
     </div>
 
   </q-page>
@@ -36,6 +39,7 @@ import QuickButtons from 'components/QuickButtons.vue';
 import RollDisplay from 'components/RollDisplay.vue';
 import PreviousRolls from 'components/PreviousRolls.vue';
 import { Die } from 'src/die';
+import HistoryList from 'src/components/HistoryList.vue';
 
 const DEFAULT_QUANTITY = 1;
 const DEFAULT_MIN = 1;
@@ -50,7 +54,6 @@ function letsroll(
   die: Die,
   mode: MODE,
   rolls: rollHistoryType[],
-  history: rollHistoryType[],
   repeats: number,
   min?: number,
   max?: number
@@ -74,30 +77,19 @@ function letsroll(
   // trim roll history
   if (rolls.length > MAX_HISTORY) rolls.pop();
 
-  // add die to front of prevoius range list (removing duplicates)
-  const prev_index = history.findIndex(
-    (i) => i.label === rolls[0].label && i.mode === mode
-  );
-  if (prev_index >= 0) history.splice(prev_index, 1);
-  history.unshift(rolls[0]);
-  if (history.length > MAX_HISTORY) history.pop();
-
   return newDie;
 }
 
 
 export default defineComponent({
   name: 'IndexPage',
-  components: { QuickButtons, RollDisplay, PreviousRolls },
+  components: { QuickButtons, RollDisplay, PreviousRolls, HistoryList },
   setup() {
 
     const _rolls: rollHistoryType[] = [];
-    const _history: rollHistoryType[] = [];
     // all prevoius die objects, with label and mode (oldest last)
     const die = shallowRef(new Die(DEFAULT_MIN, DEFAULT_MAX, DEFAULT_QUANTITY));
     const rolls = ref(_rolls);
-    // same as rolls, but duplicates are removed (keeping only most recent)
-    const history = ref(_history);
     const lastUpdate = ref(new Date());
     const mode = ref(MODE.default);
     const repeats = ref(DEFAULT_QUANTITY);
@@ -109,12 +101,15 @@ export default defineComponent({
     //const consoleInputRef = useRef<HTMLInputElement | null>(null);
     //const quantityInputRef = useRef<HTMLInputElement | null>(null);
 
+    const lastRoll = computed(() => {
+      return rolls.value.length > 0 ? rolls.value[0] : null;
+    });
+
     function bigButtonClick() {
       die.value = letsroll(
         die.value,
         mode.value,
         rolls.value,
-        history.value,
         repeats.value
       );
       lastUpdate.value = new Date();
@@ -126,9 +121,9 @@ export default defineComponent({
       bigButtonClick()
     }
 
-    const lastRoll = computed(() => {
-      return rolls.value.length > 0 ? rolls.value[0] : null;
-    });
+    function handleChipClick(v : rollHistoryType) {
+      console.log(JSON.stringify(v))
+    }
 
     return {
       lastRoll,
@@ -139,6 +134,7 @@ export default defineComponent({
       history,
       bigButtonClick,
       handleQuickButton,
+      handleChipClick,
     };
   },
 });

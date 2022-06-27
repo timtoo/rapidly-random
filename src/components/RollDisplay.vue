@@ -1,5 +1,9 @@
 <template>
-  <q-btn outline @click="$emit('onRollDisplayClick')" class="q-pa-lg rr-big-btn text-h3">
+  <q-btn
+    outline
+    @click="$emit('onRollDisplayClick')"
+    class="q-pa-lg rr-big-btn text-h3"
+  >
     {{ displayValue }}
   </q-btn>
 </template>
@@ -11,7 +15,7 @@ import { rollHistoryType, MODE } from 'components/models';
 export default defineComponent({
   name: 'RollDisplay',
   props: {
-    roll: { type: Object as PropType<rollHistoryType | null>, required: true },
+    roll: { type: Object as PropType<rollHistoryType | null>, default: null }, // required: true causes typescript warnings
     index: { type: Number },
   },
   emits: ['onRollDisplayClick'],

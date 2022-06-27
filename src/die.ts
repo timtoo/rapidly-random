@@ -73,11 +73,11 @@ class Die {
 
     this.result = null;
     this.results = [];
-    this.parsedText = "";
+    this.parsedText = '';
 
-    if (typeof min === "string") {
+    if (typeof min === 'string') {
       const result = this.parse(min);
-      if (result === null) throw new Error("Invalid dice notation");
+      if (result === null) throw new Error('Invalid dice notation');
     } else {
       this.min = min;
     }
@@ -91,30 +91,36 @@ class Die {
   }
 
   // return just the dice values for the given throw (note: 1-based)
-  getThrow(repeat=1): number[] {
-    if (this.results.length >= repeat) return this.results[repeat-1].slice(1);
+  getThrow(repeat = 1): number[] {
+    if (this.results.length >= repeat) return this.results[repeat - 1].slice(1);
     return [];
   }
 
   // the actual possible range to roll
   // note: probabilty distribution may not be even if repeats?
   // single: single die only (if more than one)
-  getRange(single=false): [number, number] {
-    let min = this.min
-    let max = this.max
+  getRange(single = false): [number, number] {
+    let min = this.min;
+    let max = this.max;
     if (!single) {
       min = (Math.ceil(this.dice * this.mult) + this.mod) * this.repeat;
-      max = (Math.ceil(this.max * this.dice * this.mult) + this.mod) * this.repeat;
+      max =
+        (Math.ceil(this.max * this.dice * this.mult) + this.mod) * this.repeat;
     }
     if (this.exclusive) max--;
     return [min, max];
   }
 
-  // single: range for just a single die only, 
+  // single: range for just a single die only,
   // absolute: actual range, don't use exclusive indicator
-  getRangeString(single=false, separator=",", absolute=false): string {
-    const [min, max] = this.getRange(single)
-    return "[" + min + separator + ((absolute || (!this.exclusive)) ? "" + max + "]" : "" + (max+1) + ')')
+  getRangeString(single = false, separator = ',', absolute = false): string {
+    const [min, max] = this.getRange(single);
+    return (
+      '[' +
+      min +
+      separator +
+      (absolute || !this.exclusive ? '' + max + ']' : '' + (max + 1) + ')')
+    );
   }
 
   // throw the dice, just once, return results in array
@@ -122,25 +128,25 @@ class Die {
     const row: number[] = [0];
     const upper = this.exclusive ? this.max : this.max + 1;
 
-    for (let i=0; i<this.dice; i++) {
+    for (let i = 0; i < this.dice; i++) {
       row.push(Math.floor(Math.random() * (upper - this.min)) + this.min);
-      row[0] += row[row.length-1]
+      row[0] += row[row.length - 1];
     }
 
     row[0] = Math.ceil(row[0] * this.mult); // D&D manaul says round up?
-    row[0] += this.mod
+    row[0] += this.mod;
 
     return row;
   }
 
   // throw the dice as many times as needed, update object with results, return object
   roll(): Die {
-    this.results = [this.throw()]
-    this.result = this.results[0][0]
+    this.results = [this.throw()];
+    this.result = this.results[0][0];
     if (this.repeat > 1) {
       for (let i = 1; i < this.repeat; i++) {
-        this.results.push(this.throw())
-        this.result += this.results[this.results.length-1][0]
+        this.results.push(this.throw());
+        this.result += this.results[this.results.length - 1][0];
       }
     }
     return this;
@@ -189,24 +195,24 @@ class Die {
     //if (this.min !== 1) value += ">" + this.min;
     //if (this.min !== 1 || (this.min === 0 && (! this.zerobase))) value += ">" + this.min;
     if (this.min !== 1) {
-      if (!(this.min === 0 && this.zerobase)) value += ">" + this.min;
+      if (!(this.min === 0 && this.zerobase)) value += '>' + this.min;
     }
-    if (this.mult > 1) value += "x" + this.mult;
+    if (this.mult > 1) value += 'x' + this.mult;
     if (this.mult > 0 && this.mult < 1)
-      value += "/" + Math.round(1 / this.mult);
+      value += '/' + Math.round(1 / this.mult);
 
-    if (this.mod > 0) value += "+" + this.mod;
+    if (this.mod > 0) value += '+' + this.mod;
     if (this.mod < 0) value += this.mod;
 
     if (this.repeat > 1) value = `${this.repeat}x(${value})`;
 
     if (compact) {
-      if (this.max === 6) value = value.replace("d6", "d");
-      if (this.dice === 1) value = value.replace("1d", "d");
+      if (this.max === 6) value = value.replace('d6', 'd');
+      if (this.dice === 1) value = value.replace('1d', 'd');
     }
 
-    if (this.exclusive) value += "x";
-    if (this.min === 0 && this.zerobase) value += "z";
+    if (this.exclusive) value += 'x';
+    if (this.min === 0 && this.zerobase) value += 'z';
 
     return value;
   }
@@ -246,10 +252,10 @@ class Die {
 
       [match.groups?.flag1, match.groups?.flag2].map((e) => {
         if (e) {
-          if (e.toLowerCase() === "x") this.exclusive = true;
+          if (e.toLowerCase() === 'x') this.exclusive = true;
           // zero base is ignored if any non-zero min is explictly set
           if (
-            e.toLowerCase() === "z" &&
+            e.toLowerCase() === 'z' &&
             (match.groups?.min === undefined || this.min === 0)
           ) {
             this.zerobase = true;

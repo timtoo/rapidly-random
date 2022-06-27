@@ -1,22 +1,22 @@
 <template>
   <q-page>
-    <div class="row justify-center items-start">
-      <display-button :roll="lastRoll" @click="bigButtonClick"></display-button>
+    <div class="row justify-center">
+      <roll-display :roll="lastRoll" @click="bigButtonClick"></roll-display>
     </div>
-    <div class="row justify-center items-start q-mt-md" v-if="lastRoll">
+    <div class="row justify-center items-start q-mt-sm">
       <i>
-        {{ lastRoll.die.getRangeString(true, ' to ') }}
+        {{ lastRoll ? lastRoll.die.getRangeString(true, ' to ') : "&nbsp;" }}
       </i>
     </div>
-    <div class="row justify-center items-start q-mt-md" v-if="lastRoll">
-      <i style="font-size: 50%"> {{ lastUpdate }} </i>
+    <div class="row justify-center items-start">
+      <i style="font-size: 60%"> {{ lastRoll ? lastRoll.time.toLocaleString() : "&nbsp;" }} </i>
     </div>
-    <div class="row justify-center items-start q-mt-md">
+    <div class="row justify-center q-mt-md">
       <quick-buttons
         label="Quick Roll:"
         :mode="mode"
         :current="die.max"
-        v-on:on-quick-button="(e) => handleQuickButton(e)"
+        v-on:on-quick-button="(v:number) => handleQuickButton(v)"
       ></quick-buttons>
     </div>
   </q-page>
@@ -26,13 +26,10 @@
 import { computed, defineComponent, ref, shallowRef } from 'vue';
 import {
   MODE,
-  MODES,
   rollHistoryType,
-  saveStateDictType,
-  stateType,
 } from 'components/models';
 import QuickButtons from 'components/QuickButtons.vue';
-import DisplayButton from 'components/DisplayButton.vue';
+import RollDisplay from 'components/RollDisplay.vue';
 import { Die } from 'src/die';
 
 const DEFAULT_QUANTITY = 1;
@@ -81,35 +78,10 @@ function letsroll(
   return newDie;
 }
 
-// pass through to last die.getThrow with some safety
-function getLastThrow(state: stateType): number[] {
-  if (state.rolls.length > 0) {
-    return state.rolls[0].die.getThrow();
-  }
-  return [];
-}
-
 export default defineComponent({
   name: 'IndexPage',
-  components: { QuickButtons, DisplayButton },
+  components: { QuickButtons, RollDisplay },
   setup() {
-    const initState: stateType = {
-      die: new Die(
-        DEFAULT_MIN,
-        DEFAULT_MAX,
-        DEFAULT_QUANTITY,
-        0,
-        1,
-        1,
-        false,
-        false
-      ),
-      rolls: [],
-      lastTime: new Date(),
-      history: [],
-      newQuantity: DEFAULT_QUANTITY, // don't change quantity directly or will
-      needUpdate: 0,
-    };
 
     const _rolls: rollHistoryType[] = [];
     const _history: rollHistoryType[] = [];
@@ -141,17 +113,15 @@ export default defineComponent({
       console.log('rolling');
     }
 
-    function handleQuickButton(e : number) {
-      die.value.max = e
-      die.value = letsroll(die.value, mode.value, rolls.value, history.value, repeats.value)
+    function handleQuickButton(v : number) {
+      die.value.max = v
+      bigButtonClick()
     }
 
     const lastRoll = computed(() => {
-      console.log('computing lastRoll ');
       return rolls.value.length > 0 ? rolls.value[0] : null;
     });
 
-    console.log(JSON.parse(JSON.stringify(DisplayButton)));
     return {
       lastRoll,
       lastUpdate,

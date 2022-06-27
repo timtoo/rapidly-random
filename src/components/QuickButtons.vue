@@ -2,8 +2,7 @@
         <div style="color:$secondary" class="text-sm">
           {{label}}
         </div>
-        <br />
-        <div>
+        <div class="row justify-center">
           <template v-for="v in values" :key="v">
             <q-btn
               flat

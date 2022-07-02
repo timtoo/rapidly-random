@@ -1,8 +1,8 @@
 <template>
-    <div style="overflow:hidden;white-space: nowrap; color:white" class="q-mx-lg rr-hl" v-if="filteredRolls">
+    <div style="overflow:hidden;white-space: nowrap; color:white" class="q-mx-lg rr-hl" v-if="filteredRolls.length > 0">
         <div>{{label}} 
-        <template v-for="r of filteredRolls" :key="r.label+':'+r.mode">
-            <q-chip dense color="primary" @click="$emit('onDieChip', r)" icon="star">{{r.label}}</q-chip>
+        <template v-for="r of filteredRolls" :key="makeKey(r)">
+            <q-chip dense :color="currentKey === makeKey(r) ? 'secondary' : 'primary'" clickable @click="$emit('onDieChip', r)" icon="star">{{r.label}}</q-chip>
         </template>
        </div>
     </div>
@@ -26,12 +26,16 @@ export default defineComponent({
     },
     emits: ['onDieChip'],
     setup(props) {
+        function makeKey(roll: rollHistoryType): string {
+            return roll.label + ':' + roll.mode;
+        }
+
         const filteredRolls = computed((): rollHistoryType[] => {
             const history: rollHistoryType[] = []
             const seen = new Set()
 
             for (const r of props.rolls) {
-                const key = r.label + ':' + r.mode;
+                const key = makeKey(r);
                 if (! seen.has(key)) {
                     seen.add(key)
                     history.push(r)
@@ -41,7 +45,9 @@ export default defineComponent({
             return history
         })
 
-    return { filteredRolls }
+        const currentKey = computed(() => props.rolls.length > 0 ? makeKey(props.rolls[0]) : '');
+
+    return { filteredRolls, makeKey, currentKey }
     }
 })
 

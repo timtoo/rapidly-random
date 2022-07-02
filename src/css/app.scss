@@ -5,6 +5,14 @@ body {
     color: $text-default;
 }
 
+.text-rrinput {
+  color: $text-default !important;
+}
+
+.bg-rrinput {
+  background: #24344d !important;
+}
+
 .rr-big-btn {
     color: $primary;
     min-width: 2.6em;

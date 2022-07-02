@@ -5,11 +5,13 @@
     </div>
     <div class="row justify-center items-start q-mt-sm">
       <i>
-        {{ lastRoll ? lastRoll.die.getRangeString(true, ' to ') : "&nbsp;" }}
+        {{ lastRoll ? lastRoll.die.getRangeString(true, ' to ') : '&nbsp;' }}
       </i>
     </div>
     <div class="row justify-center">
-      <i style="font-size: 60%"> {{ lastRoll ? lastRoll.time.toLocaleString() : "&nbsp;" }} </i>
+      <i style="font-size: 60%">
+        {{ lastRoll ? lastRoll.time.toLocaleString() : '&nbsp;' }}
+      </i>
     </div>
     <div class="row justify-center q-mt-md">
       <quick-buttons
@@ -22,22 +24,41 @@
     <div class="row justify-center items-start">
       <previous-rolls :rolls="rolls"></previous-rolls>
     </div>
-  <div class="row justify-center">
-      <history-list :rolls="rolls" @on-die-chip="(v) => handleChipClick(v) "></history-list>
+    <div class="row justify-center">
+      <history-list
+        :rolls="rolls"
+        @on-die-chip="(v) => handleChipClick(v)"
+      ></history-list>
+    </div>
+    <div class="row justify-center">
+      <AdvancedForm
+        :die="die"
+        :mode="mode"
+        @advanced-update="(v) => advancedUpdate(v)"
+      ></AdvancedForm>
     </div>
 
+    <q-page-sticky position="bottom-right" :offset="[20, 20]">
+      <q-btn
+        fab
+        icon="auto_awesome"
+        color="secondary"
+        text-color="black"
+        @click="bigButtonClick"
+      > &nbsp; <span style="text-transform:none">{{die.toString()}}</span></q-btn>
+    </q-page-sticky>
+    <DebugDie :die="die"></DebugDie>
   </q-page>
 </template>
 
 <script lang="ts">
 import { computed, defineComponent, ref, shallowRef } from 'vue';
-import {
-  MODE,
-  rollHistoryType,
-} from 'components/models';
+import { MODE, rollHistoryType } from 'components/models';
+import DebugDie from 'components/DebugDie.vue';
 import QuickButtons from 'components/QuickButtons.vue';
 import RollDisplay from 'components/RollDisplay.vue';
 import PreviousRolls from 'components/PreviousRolls.vue';
+import AdvancedForm from 'components/AdvancedForm.vue';
 import { Die } from 'src/die';
 import HistoryList from 'src/components/HistoryList.vue';
 
@@ -80,15 +101,20 @@ function letsroll(
   return newDie;
 }
 
-
 export default defineComponent({
   name: 'IndexPage',
-  components: { QuickButtons, RollDisplay, PreviousRolls, HistoryList },
+  components: {
+    QuickButtons,
+    RollDisplay,
+    PreviousRolls,
+    HistoryList,
+    AdvancedForm,
+    DebugDie,
+  },
   setup() {
-
     const _rolls: rollHistoryType[] = [];
     // all prevoius die objects, with label and mode (oldest last)
-    const die = shallowRef(new Die(DEFAULT_MIN, DEFAULT_MAX, DEFAULT_QUANTITY));
+    const die = ref(new Die(DEFAULT_MIN, DEFAULT_MAX, DEFAULT_QUANTITY));
     const rolls = ref(_rolls);
     const lastUpdate = ref(new Date());
     const mode = ref(MODE.default);
@@ -106,23 +132,26 @@ export default defineComponent({
     });
 
     function bigButtonClick() {
-      die.value = letsroll(
-        die.value,
-        mode.value,
-        rolls.value,
-        repeats.value
-      );
+      die.value = letsroll(die.value, mode.value, rolls.value, repeats.value);
       lastUpdate.value = new Date();
-      console.log('rolling');
     }
 
-    function handleQuickButton(v : number) {
-      die.value.max = v
-      bigButtonClick()
+    function handleQuickButton(v: number) {
+      die.value.max = v;
+      die.value.min = die.value.zerobase ? 0 : 1;
+      bigButtonClick();
     }
 
-    function handleChipClick(v : rollHistoryType) {
-      console.log(JSON.stringify(v))
+    function advancedUpdate(v: any) {
+      die.value.min = v[0];
+      die.value.max = v[1];
+      console.log('process advanced ', v);
+    }
+
+    function handleChipClick(v: rollHistoryType) {
+      die.value = v.die.clone();
+      mode.value = v.mode;
+      bigButtonClick();
     }
 
     return {
@@ -132,9 +161,12 @@ export default defineComponent({
       die,
       rolls,
       history,
+      min: die.value.min,
+      max: die.value.max,
       bigButtonClick,
       handleQuickButton,
       handleChipClick,
+      advancedUpdate,
     };
   },
 });

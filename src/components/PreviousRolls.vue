@@ -4,7 +4,7 @@
     class="q-mx-lg rr-pr"
     v-if="previousRollsString"
   >
-    <div><span class="rr-pr-label">{{ label }}</span> <span v-html="previousRollsString"></span></div>
+    <div><span class="rr-pr-label">{{ label }}</span> <span class="grad" v-html="previousRollsString"></span></div>
   </div>
 </template>
 
@@ -14,6 +14,13 @@
   &-label {
     color: $text-default;
   }
+}
+
+.grad {
+  color: black;
+  -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text;
+  background-image: linear-gradient(225deg, $paper 0%, $primary 50%, $primary 100%)
 }
 </style>
 

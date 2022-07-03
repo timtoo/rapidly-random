@@ -3,13 +3,15 @@ import { Die } from 'src/die';
 export enum MODE {
   default,
   dice,
+  binary,
   hex,
 }
 
 export const MODES: [number, string][] = [
   [0, 'Normal'],
   [1, 'Dice'],
-  [2, 'Hex'],
+  [2, 'Binary'],
+  [3, 'Hex'],
 ];
 
 export type rollHistoryType = {

@@ -1,56 +1,3 @@
-<template>
-  <q-page>
-    <div class="row justify-center">
-      <roll-display :roll="lastRoll" @click="bigButtonClick"></roll-display>
-    </div>
-    <div class="row justify-center items-start q-mt-sm">
-      <i>
-        {{ lastRoll ? lastRoll.die.getRangeString(true, ' to ') : '&nbsp;' }}
-      </i>
-    </div>
-    <div class="row justify-center">
-      <i style="font-size: 60%">
-        {{ lastRoll ? lastRoll.time.toLocaleString() : '&nbsp;' }}
-      </i>
-    </div>
-    <div class="row justify-center q-mt-md">
-      <quick-buttons
-        label="Quick Roll:"
-        :mode="mode"
-        :current="die.max"
-        @on-quick-button="(v:number) => handleQuickButton(v)"
-      ></quick-buttons>
-    </div>
-    <div class="row justify-center items-start">
-      <previous-rolls :rolls="rolls"></previous-rolls>
-    </div>
-    <div class="row justify-center">
-      <history-list
-        :rolls="rolls"
-        @on-die-chip="(v) => handleChipClick(v)"
-      ></history-list>
-    </div>
-    <div class="row justify-center">
-      <AdvancedForm
-        :die="die"
-        :mode="mode"
-        @advanced-update="(v) => advancedUpdate(v)"
-      ></AdvancedForm>
-    </div>
-
-    <q-page-sticky position="bottom-right" :offset="[20, 20]">
-      <q-btn
-        fab
-        icon="auto_awesome"
-        color="secondary"
-        text-color="black"
-        @click="bigButtonClick"
-      > &nbsp; <span style="text-transform:none">{{die.toString()}}</span></q-btn>
-    </q-page-sticky>
-    <DebugDie :die="die"></DebugDie>
-  </q-page>
-</template>
-
 <script lang="ts">
 import { computed, defineComponent, ref, shallowRef } from 'vue';
 import { MODE, rollHistoryType } from 'components/models';
@@ -119,6 +66,7 @@ export default defineComponent({
     const lastUpdate = ref(new Date());
     const mode = ref(MODE.default);
     const repeats = ref(DEFAULT_QUANTITY);
+    const afrender = ref(0)
 
     //const prevModeState = ref(saveStateDictInit);
     //const ttopen = ref(false); // hint tooltip
@@ -154,6 +102,12 @@ export default defineComponent({
       bigButtonClick();
     }
 
+    function handleZeroBaseToggle() {
+      die.value.zerobase = !die.value.zerobase; 
+      die.value.min = die.value.zerobase ? 0 : 1;
+      afrender.value++;
+    }
+
     return {
       lastRoll,
       lastUpdate,
@@ -163,11 +117,72 @@ export default defineComponent({
       history,
       min: die.value.min,
       max: die.value.max,
+      afrender,
       bigButtonClick,
       handleQuickButton,
       handleChipClick,
+      handleZeroBaseToggle,
       advancedUpdate,
     };
   },
 });
 </script>
+
+<template>
+  <q-page>
+    <div class="row justify-center">
+      <roll-display :roll="lastRoll" @click="bigButtonClick"></roll-display>
+    </div>
+    <div class="row justify-center items-start q-mt-sm">
+      <i>
+        {{ lastRoll ? lastRoll.die.getRangeString(true, ' to ') : '&nbsp;' }}
+      </i>
+    </div>
+    <div class="row justify-center">
+      <i style="font-size: 60%">
+        {{ lastRoll ? lastRoll.time.toLocaleString() : '&nbsp;' }}
+      </i>
+    </div>
+    <div class="row justify-center q-mt-md">
+      <quick-buttons
+        label="Quick Roll:"
+        :mode="mode"
+        :current="die.max"
+        @on-quick-button="(v:number) => handleQuickButton(v)"
+      ></quick-buttons>
+    </div>
+    <div class="row justify-center items-start">
+      <previous-rolls :rolls="rolls"></previous-rolls>
+    </div>
+    <div class="row justify-center">
+      <history-list
+        :rolls="rolls"
+        @on-die-chip="(v) => handleChipClick(v)"
+      ></history-list>
+    </div>
+    <div class="row justify-center">
+      <AdvancedForm
+        :die="die"
+        :watchmin="die.min"
+        :watchmax="die.max"
+        :mode="mode"
+        :afrender="afrender"
+        @advanced-update="(v) => advancedUpdate(v)"
+        @base-toggle="handleZeroBaseToggle"
+        @exclusive-toggle="() => die.exclusive = !die.exclusive"
+      ></AdvancedForm>
+    </div>
+
+    <q-page-sticky position="bottom-right" :offset="[20, 20]">
+      <q-btn
+        fab
+        icon="auto_awesome"
+        color="secondary"
+        text-color="black"
+        @click="bigButtonClick"
+      > &nbsp; <span style="text-transform:none">{{die.toString()}}</span></q-btn>
+    </q-page-sticky>
+    <DebugDie :die="die" :active="true" bg-color="#d5c396"></DebugDie>
+  </q-page>
+</template>
+

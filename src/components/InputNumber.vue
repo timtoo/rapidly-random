@@ -1,5 +1,5 @@
 <template>
-  <q-input outlined style="max-width: 9em" model-value="0" :dense="dense">
+  <q-input outlined style="max-width: 10em" :model-value="localValue" @update:model-value="(v) => emitUpdate(v as string)" :dense="dense">
     <template v-slot:prepend>
       <q-btn round flat color="primary" icon="remove" :dense="dense" @click="onDecrement"/>
     </template>
@@ -18,15 +18,15 @@ function toNumber(v: string): number {
 }
 
 export default defineComponent({
-    name: "InputNumber",
+    name: 'InputNumber',
     props: {
         dense: {
             type: Boolean,
             default: false
         },
         modelValue: {
-            type: String,
-            default: '',
+            type: Number,
+            required: false
         },
         min: {
             type: Number,
@@ -35,22 +35,39 @@ export default defineComponent({
             type: Number,
         },
     },
-
-
-    setup(props, ctx) {
-      let value = toNumber(props.modelValue)
+    emits: ['update:modelValue'],
+    setup(props, ctx) {     
+      // the converting string/int all over the place is a mess....
+      // just can't be bothered to stort it out.
+      const localValue = ref((props.modelValue || 0).toString());
 
       function onDecrement() {
-        if (props.max === undefined || props.value < props.max) {
-          value++;
-          props.modelValue = value 
-
-
+        let v = toNumber(localValue.value)
+        if (props.min === undefined || v > props.min) {
+          v--;
+          emitUpdate(v.toString());
         }
       }
 
+      function onIncrement() {
+        let v = toNumber(localValue.value)
+        if (props.max === undefined || v < props.max) {
+          v++;
+          emitUpdate(v.toString())
+        }
+      }
 
-      return { onIncrement, onDecrement }
+      function emitUpdate(v?: string) {
+        if (v !== undefined) {
+          let n = toNumber(v)
+          if (props.min !== undefined && n < props.min) n = props.min;
+          if (props.max !== undefined && n > props.max) n = props.max;
+          localValue.value = n.toString()
+        }
+        ctx.emit('update:modelValue', toNumber(localValue.value))
+      }
+
+      return { localValue, onIncrement, onDecrement, emitUpdate }
     }
 })
 

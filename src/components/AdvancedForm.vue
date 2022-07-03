@@ -1,51 +1,27 @@
 <template>
   <div class="row">
-    <q-input
-      v-model.number="min"
-      type="number"
-      name="min"
+    <InputNumber
+      dense
       label="Min"
-      color="secondary"
+      v-model="min"
+      input-class="text-rrinput"
       bg-color="rrinput"
       label-color="primary"
-      input-class="text-rrinput"
-      maxlength="12"
-      min="0"
-      max="max-1"
-      outlined
-      standout
-      dense
-      style="max-width: 8rem"
       @update:model-value="handleMinMax('min')"
-      @keydown="keyHandler"
-    >
-      <template v-slot:prepend>
-        <q-icon color="primary" name="vertical_align_bottom" /> </template
-    ></q-input>
-    <q-input
-      v-model.number="max"
-      type="number"
-      name="max"
+      :min="0"
+      :max="max - 1"
+    ></InputNumber>
+
+    <InputNumber
+      dense
       label="Max"
-      color="secondary"
+      v-model="max"
+      input-class="text-rrinput"
       bg-color="rrinput"
       label-color="primary"
-      input-class="text-rrinput"
-      maxlength="12"
-      :min="max-1"
-      outlined
-      standout
-      dense
-      style="max-width: 8rem"
       @update:model-value="handleMinMax('max')"
-      @keydown="(e) => keyHandler(e)"
-    >
-      <template v-slot:prepend>
-        <q-icon color="primary" name="vertical_align_top" />
-      </template>
-    </q-input>
-
-    <q-btn @click="handletest">test</q-btn>
+      :min="min + 1"
+    ></InputNumber>
   </div>
 </template>
 
@@ -54,6 +30,7 @@
 <script lang="ts">
 import { watch, defineComponent, ref } from 'vue';
 import { Die } from 'src/die';
+import InputNumber from 'src/components/InputNumber.vue';
 
 export default defineComponent({
   props: {
@@ -67,6 +44,7 @@ export default defineComponent({
     },
   },
   emits: ['advanced-update', 'input'],
+  components: { InputNumber },
   setup(props, ctx) {
     const min = ref(props.die.min);
     const max = ref(props.die.max);
@@ -81,24 +59,16 @@ export default defineComponent({
       if (v == 'min') {
         if (min.value < 0) min.value = 0;
         if (min.value >= max.value) min.value = max.value - 1;
-        ctx.emit('input', min.value)
+        ctx.emit('input', min.value);
       } else if (v == 'max') {
         if (max.value <= min.value) max.value = min.value + 1;
-        ctx.emit('input', max.value)
+        ctx.emit('input', max.value);
       }
       console.log('new minmax ', min.value, ' ', max.value);
       ctx.emit('advanced-update', [min.value, max.value]);
     }
 
-    function keyHandler(e) {
-      console.log('key ',e)
-    }
-
-    function handletest() {
-      min.value = 4
-    }
-
-    return { min, max, handleMinMax, keyHandler, handletest };
+    return { min, max, handleMinMax };
   },
 });
 </script>

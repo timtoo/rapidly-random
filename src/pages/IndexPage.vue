@@ -54,13 +54,13 @@
 <script lang="ts">
 import { computed, defineComponent, ref, shallowRef } from 'vue';
 import { MODE, rollHistoryType } from 'components/models';
-import DebugDie from 'components/DebugDie.vue';
+import { Die } from 'src/die';
+import AdvancedForm from 'components/AdvancedForm.vue';
+import HistoryList from 'src/components/HistoryList.vue';
+import PreviousRolls from 'components/PreviousRolls.vue';
 import QuickButtons from 'components/QuickButtons.vue';
 import RollDisplay from 'components/RollDisplay.vue';
-import PreviousRolls from 'components/PreviousRolls.vue';
-import AdvancedForm from 'components/AdvancedForm.vue';
-import { Die } from 'src/die';
-import HistoryList from 'src/components/HistoryList.vue';
+import DebugDie from 'components/DebugDie.vue';
 
 const DEFAULT_QUANTITY = 1;
 const DEFAULT_MIN = 1;

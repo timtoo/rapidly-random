@@ -18,7 +18,7 @@ export default defineComponent({
     watchmax: Number,
     afrender: Number,
   },
-  emits: ['advanced-update', 'input', 'base-toggle', 'exclusive-toggle'],
+  emits: ['advanced-update', 'input', 'base-toggle', 'exclusive-toggle', 'mode-change'],
   components: { InputNumber },
   setup(props, ctx) {
     const min = ref(props.die.min);
@@ -99,7 +99,7 @@ export default defineComponent({
       :label="mode_label"
     ><q-list bordered dense class="bg-rrinput">
         <template v-for="m in MODES" :key="m[0]">
-        <q-item clickable v-close-popup>
+        <q-item clickable v-close-popup @click="$emit('mode-change', m[0])">
           <q-item-section>
             <q-item-label>{{m[1]}}</q-item-label>
           </q-item-section>
@@ -140,7 +140,5 @@ export default defineComponent({
 .rr-active-button {
   color: $text-default !important;
 }
-.rr-input {
-    background-color: $rr-input;
-}
+
 </style>

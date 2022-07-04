@@ -1,23 +1,5 @@
-<template>
-  <div style="color: $secondary" class="text-sm">
-    {{ label }}
-  </div>
-  <div class="row justify-center">
-    <template v-for="v in values" :key="v">
-      <q-btn
-        flat
-        @click="$emit('onQuickButton', v)"
-        class="rr-qb"
-        :class="{ 'rr-qb-selected': current === v }"
-      >
-        {{ mode === MODE.hex ? v.toString(16) : v.toLocaleString() }}
-      </q-btn>
-    </template>
-  </div>
-</template>
-
 <script lang="ts">
-import { defineComponent, PropType } from 'vue';
+import { ref, defineComponent, PropType, computed } from 'vue';
 
 import { MODE } from 'components/models';
 
@@ -26,9 +8,10 @@ const quick_sets = {
     2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 30, 50, 100, 256, 1000, 1000000,
   ],
   [MODE.hex as number]: [
-    16, 32, 64, 128, 256, 1024, 2048, 4096, 9182, 65536, 1048576, 16777216,
+    16, 32, 64, 128, 256, 1024, 2048, 4096, 8192, 65536, 1048576, 16777216,
   ],
   [MODE.dice as number]: [2, 4, 6, 8, 10, 12, 20, 100],
+  [MODE.binary as number]: [2,4,8,16,32,64,256,256*256],
 };
 
 export default defineComponent({
@@ -50,8 +33,27 @@ export default defineComponent({
   },
   emits: ['onQuickButton'],
   setup(props) {
-    const values = quick_sets[props.mode];
-    return { values, MODE };
+    const button_set = computed(() => quick_sets[props.mode])
+    return { button_set, MODE };
   },
 });
 </script>
+
+<template>
+  <div style="color: $secondary" class="text-sm">
+    {{ label }}
+  </div>
+  <div class="row justify-center">
+    <template v-for="v in button_set" :key="v">
+      <q-btn
+        flat
+        no-caps
+        @click="$emit('onQuickButton', v)"
+        class="rr-qb"
+        :class="{ 'rr-qb-selected': current === v }"
+      >
+        {{ mode === MODE.hex ? 'x'+v.toString(16) : mode === MODE.binary ? 'b'+v.toString(2) : v.toLocaleString() }}
+      </q-btn>
+    </template>
+  </div>
+</template>

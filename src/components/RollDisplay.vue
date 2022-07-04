@@ -28,6 +28,8 @@ export default defineComponent({
         if (props.roll.mode === MODE.dice) padding = '1em 3em 1em 3em';
         if (props.roll.mode === MODE.hex) {
           return props.roll.die.getResult().toString(16);
+        } else if (props.roll.mode === MODE.binary) {
+          return props.roll.die.getResult().toString(2).padStart((props.roll.die.max - (props.roll.die.exclusive?1:0)).toString(2).length, '0');
         } else {
           return props.roll.die.getResult().toLocaleString();
         }

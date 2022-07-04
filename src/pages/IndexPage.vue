@@ -102,6 +102,12 @@ export default defineComponent({
       bigButtonClick();
     }
 
+    function handleModeChange(m: number) {
+      if (m != mode.value) {
+        mode.value = m
+      }
+    }
+
     function handleZeroBaseToggle() {
       die.value.zerobase = !die.value.zerobase; 
       die.value.min = die.value.zerobase ? 0 : 1;
@@ -122,6 +128,7 @@ export default defineComponent({
       handleQuickButton,
       handleChipClick,
       handleZeroBaseToggle,
+      handleModeChange,
       advancedUpdate,
     };
   },
@@ -170,6 +177,7 @@ export default defineComponent({
         @advanced-update="(v) => advancedUpdate(v)"
         @base-toggle="handleZeroBaseToggle"
         @exclusive-toggle="() => die.exclusive = !die.exclusive"
+        @mode-change="(m) => handleModeChange(m)"
       ></AdvancedForm>
     </div>
 

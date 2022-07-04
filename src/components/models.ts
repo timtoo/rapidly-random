@@ -8,11 +8,18 @@ export enum MODE {
 }
 
 export const MODES: [number, string][] = [
-  [0, 'Normal'],
-  [1, 'Dice'],
-  [2, 'Binary'],
-  [3, 'Hex'],
+  [MODE.default, 'Normal'],
+  [MODE.dice, 'Dice'],
+  [MODE.binary, 'Binary'],
+  [MODE.hex, 'Hex'],
 ];
+
+export const MODE_ICON = {
+  [MODE.default]: 'star',
+  [MODE.hex]: 'hexagon',
+  [MODE.dice]: 'casino',
+  [MODE.binary]: 'share',
+}
 
 export type rollHistoryType = {
   label: string;

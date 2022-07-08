@@ -23,6 +23,7 @@ export default defineComponent({
   setup(props, ctx) {
     const min = ref(props.die.min);
     const max = ref(props.die.max);
+    const dice = ref(props.die.dice);
     const current_mode = ref(props.mode)
 
     const mode_options = MODES.map((v) => {return {label: v[1], value: v[0]}})
@@ -45,20 +46,25 @@ export default defineComponent({
     //  console.log('min change')
     //})
 
-    function handleMinMax(v: string) {
-      if (v == 'min') {
+    function handleMinMaxDice(v: string) {
+      if (v === 'min') {
         if (min.value < 0) min.value = 0;
         if (min.value >= max.value) min.value = max.value - 1;
-        ctx.emit('input', min.value);
-      } else if (v == 'max') {
+        ctx.emit('input', min.value, v);
+      } else if (v === 'max') {
         if (max.value <= min.value) max.value = min.value + 1;
-        ctx.emit('input', max.value);
+        ctx.emit('input', max.value, v);
       }
-      console.log('new minmax ', min.value, ' ', max.value);
-      ctx.emit('advanced-update', [min.value, max.value]);
+      else if (v === 'repeat') {
+        if (dice.value < 1) dice.value = 1;
+        if (dice.value > 10) dice.value = 10;
+        ctx.emit('input', dice.value, v);
+      }
+      console.log('new minmax ', min.value, ' ', max.value, ' ', dice.value);
+      ctx.emit('advanced-update', [min.value, max.value, dice.value]);
     }
 
-    return { min, max, mode_label, MODES, handleMinMax };
+    return { min, max, dice, mode_label, MODES, handleMinMaxDice };
   },
 });
 </script>
@@ -72,7 +78,7 @@ export default defineComponent({
       input-class="text-rrinput"
       class="bg-rrinput"
       label-color="primary"
-      @update:model-value="handleMinMax('min')"
+      @update:model-value="handleMinMaxDice('min')"
       :min="0"
       :max="max - 1"
     ></InputNumber>
@@ -84,8 +90,22 @@ export default defineComponent({
       input-class="text-rrinput"
       class="bg-rrinput"
       label-color="primary"
-      @update:model-value="handleMinMax('max')"
+      @update:model-value="handleMinMaxDice('max')"
       :min="min + 1"
+    ></InputNumber>
+  </div>
+  <div>
+    <InputNumber
+      dense
+      label="#"
+      v-model="dice"
+      input-class="text-rrinput"
+      class="bg-rrinput"
+      :style="{width: '9em'}"
+      label-color="primary"
+      @update:model-value="handleMinMaxDice('dice')"
+      :min="1"
+      :max="10"
     ></InputNumber>
   </div>
   <div>

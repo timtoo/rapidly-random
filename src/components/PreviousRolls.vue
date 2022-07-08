@@ -1,3 +1,4 @@
+<!-- Display list of previous roll results, as a string. -->
 <script lang="ts">
 import { defineComponent, computed, PropType } from 'vue';
 import { MODE, rollHistoryType } from 'components/models';

@@ -10,7 +10,7 @@
           @click="toggleLeftDrawer"
         /></div -->
 
-        <q-toolbar-title class="col-stretch text-h5" style="text-align: center;">
+        <q-toolbar-title class="col-stretch text-h6" style="text-align: center;">
           Rapidly Random Numbers
         </q-toolbar-title>
 

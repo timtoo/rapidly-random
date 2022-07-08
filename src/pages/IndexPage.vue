@@ -22,15 +22,13 @@ function letsroll(
   die: Die,
   mode: MODE,
   rolls: rollHistoryType[],
-  repeats: number,
+  quantity?: number,
   min?: number,
   max?: number
 ): Die {
   if (min === undefined) min = die.min;
   if (max === undefined) max = die.max;
-
-  // update number of dice requested
-  if (repeats !== die.dice) die.dice = repeats;
+  if (quantity !== undefined && quantity !== die.dice) die.dice = quantity;
 
   die.roll();
   const newDie = die.clone();
@@ -65,7 +63,6 @@ export default defineComponent({
     const rolls = ref(_rolls);
     const lastUpdate = ref(new Date());
     const mode = ref(MODE.default);
-    const repeats = ref(DEFAULT_QUANTITY);
     const afrender = ref(0);
 
     //const prevModeState = ref(saveStateDictInit);
@@ -80,7 +77,7 @@ export default defineComponent({
     });
 
     function bigButtonClick() {
-      die.value = letsroll(die.value, mode.value, rolls.value, repeats.value);
+      die.value = letsroll(die.value, mode.value, rolls.value);
       lastUpdate.value = new Date();
     }
 
@@ -93,7 +90,8 @@ export default defineComponent({
     function advancedUpdate(v: any) {
       die.value.min = v[0];
       die.value.max = v[1];
-      console.log('process advanced ', v);
+      die.value.dice = v[2];
+      //console.log('process advanced ', v);
     }
 
     function handleChipClick(v: rollHistoryType) {
@@ -138,7 +136,12 @@ export default defineComponent({
 <template>
   <q-page>
     <div class="row justify-center">
-      <roll-display :roll="lastRoll" @click="bigButtonClick"></roll-display>
+      <template v-if="lastRoll"><div v-for="(v,idx) in lastRoll.die.getThrow()" :key="idx">
+      <roll-display :value="v" :index="idx" :roll="lastRoll" @click="bigButtonClick"></roll-display>
+      </div></template>
+      <template v-else>
+      <roll-display :value="0" :roll="null" @click="bigButtonClick"></roll-display>
+      </template>
     </div>
     <div class="row justify-center items-start q-mt-sm">
       <i>

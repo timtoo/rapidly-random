@@ -71,8 +71,8 @@ class Die {
     this.zerobase = zerobase; // zero is lowest instead of one
     this.exclusive = exclusive; // subtract 1 from highest dice number
 
-    this.result = null;
-    this.results = [];
+    this.result = null; // total value of last roll
+    this.results = []; // [total, die 1, die 2, die 3, ...]
     this.parsedText = '';
 
     if (typeof min === 'string') {
@@ -85,7 +85,7 @@ class Die {
     this.rid = Math.random(); // meaningless random number
   }
 
-  // the up side is you always get a number, down side is it's always -1 if not rolled
+  // always returns a number for last roll result; -1 if not yet rolled
   getResult(): number {
     return this.result === null ? -1 : this.result;
   }
@@ -123,7 +123,7 @@ class Die {
     );
   }
 
-  // throw the dice, just once, return results in array
+  // throw the dice, just once, return results in array [total, die 1, die 2, ...]
   throw(): number[] {
     const row: number[] = [0];
     const upper = this.exclusive ? this.max : this.max + 1;

@@ -24,10 +24,9 @@ export default defineComponent({
         props.limit + 1 + props.skip
       )) {
         if (r.mode === MODE.hex) {
-          rs = 'x'+r.die.getResult().toString(16);
-        } 
-        else if (r.mode === MODE.binary) {
-          rs = 'b'+r.die.getResult().toString(2);
+          rs = 'x' + r.die.getResult().toString(16);
+        } else if (r.mode === MODE.binary) {
+          rs = 'b' + r.die.getResult().toString(2);
         } else {
           rs = r.die.getResult().toLocaleString();
           if (r.die.results.length > 1) {
@@ -50,7 +49,10 @@ export default defineComponent({
     class="q-mx-lg rr-pr"
     v-if="previousRollsString"
   >
-    <div><span class="rr-pr-label">{{ label }}</span> <span class="grad" v-html="previousRollsString"></span></div>
+    <div>
+      <span class="rr-pr-label">{{ label }}</span>
+      <span class="grad" v-html="previousRollsString"></span>
+    </div>
   </div>
 </template>
 
@@ -66,7 +68,11 @@ export default defineComponent({
   color: black;
   -webkit-text-fill-color: transparent;
   -webkit-background-clip: text;
-  background-image: linear-gradient(225deg, $paper 0%, $primary 50%, $primary 100%)
+  background-image: linear-gradient(
+    225deg,
+    $paper 0%,
+    $primary 50%,
+    $primary 100%
+  );
 }
 </style>
-

@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent, ref, watch, computed } from 'vue';
 import { Die } from 'src/die';
-import {MODE, MODES} from 'components/models'
+import { MODE, MODES } from 'components/models';
 import InputNumber from 'src/components/InputNumber.vue';
 
 export default defineComponent({
@@ -18,19 +18,29 @@ export default defineComponent({
     watchmax: Number,
     afrender: Number,
   },
-  emits: ['advanced-update', 'input', 'base-toggle', 'exclusive-toggle', 'mode-change'],
+  emits: [
+    'advanced-update',
+    'input',
+    'base-toggle',
+    'exclusive-toggle',
+    'mode-change',
+  ],
   components: { InputNumber },
   setup(props, ctx) {
     const min = ref(props.die.min);
     const max = ref(props.die.max);
     const dice = ref(props.die.dice);
-    const current_mode = ref(props.mode)
+    const current_mode = ref(props.mode);
 
-    const mode_options = MODES.map((v) => {return {label: v[1], value: v[0]}})
+    const mode_options = MODES.map((v) => {
+      return { label: v[1], value: v[0] };
+    });
 
     const mode_label = computed(() => {
-        return MODES.filter((v) => { return v[0] === props.mode})[0][1]
-    })
+      return MODES.filter((v) => {
+        return v[0] === props.mode;
+      })[0][1];
+    });
 
     // test?
     watch(
@@ -42,7 +52,7 @@ export default defineComponent({
       }
     );
 
-    //watch(min, ()=> { 
+    //watch(min, ()=> {
     //  console.log('min change')
     //})
 
@@ -54,8 +64,7 @@ export default defineComponent({
       } else if (v === 'max') {
         if (max.value <= min.value) max.value = min.value + 1;
         ctx.emit('input', max.value, v);
-      }
-      else if (v === 'repeat') {
+      } else if (v === 'repeat') {
         if (dice.value < 1) dice.value = 1;
         if (dice.value > 10) dice.value = 10;
         ctx.emit('input', dice.value, v);
@@ -101,7 +110,7 @@ export default defineComponent({
       v-model="dice"
       input-class="text-rrinput"
       class="bg-rrinput"
-      :style="{width: '9em'}"
+      :style="{ width: '9em' }"
       label-color="primary"
       @update:model-value="handleMinMaxDice('dice')"
       :min="1"
@@ -117,15 +126,16 @@ export default defineComponent({
       no-caps
       color="primary"
       :label="mode_label"
-    ><q-list bordered dense class="bg-rrinput">
+      ><q-list bordered dense class="bg-rrinput">
         <template v-for="m in MODES" :key="m[0]">
-        <q-item clickable v-close-popup @click="$emit('mode-change', m[0])">
-          <q-item-section>
-            <q-item-label>{{m[1]}}</q-item-label>
-          </q-item-section>
-        </q-item>
+          <q-item clickable v-close-popup @click="$emit('mode-change', m[0])">
+            <q-item-section>
+              <q-item-label>{{ m[1] }}</q-item-label>
+            </q-item-section>
+          </q-item>
         </template>
-      </q-list></q-btn-dropdown>
+      </q-list></q-btn-dropdown
+    >
   </div>
 
   <div>
@@ -160,5 +170,4 @@ export default defineComponent({
 .rr-active-button {
   color: $text-default !important;
 }
-
 </style>

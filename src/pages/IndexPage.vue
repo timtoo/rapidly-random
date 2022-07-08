@@ -66,7 +66,7 @@ export default defineComponent({
     const lastUpdate = ref(new Date());
     const mode = ref(MODE.default);
     const repeats = ref(DEFAULT_QUANTITY);
-    const afrender = ref(0)
+    const afrender = ref(0);
 
     //const prevModeState = ref(saveStateDictInit);
     //const ttopen = ref(false); // hint tooltip
@@ -104,12 +104,12 @@ export default defineComponent({
 
     function handleModeChange(m: number) {
       if (m != mode.value) {
-        mode.value = m
+        mode.value = m;
       }
     }
 
     function handleZeroBaseToggle() {
-      die.value.zerobase = !die.value.zerobase; 
+      die.value.zerobase = !die.value.zerobase;
       die.value.min = die.value.zerobase ? 0 : 1;
       afrender.value++;
     }
@@ -176,7 +176,7 @@ export default defineComponent({
         :afrender="afrender"
         @advanced-update="(v) => advancedUpdate(v)"
         @base-toggle="handleZeroBaseToggle"
-        @exclusive-toggle="() => die.exclusive = !die.exclusive"
+        @exclusive-toggle="() => (die.exclusive = !die.exclusive)"
         @mode-change="(m) => handleModeChange(m)"
       ></AdvancedForm>
     </div>
@@ -188,9 +188,11 @@ export default defineComponent({
         color="secondary"
         text-color="black"
         @click="bigButtonClick"
-      > &nbsp; <span style="text-transform:none">{{die.toString()}}</span></q-btn>
+      >
+        &nbsp;
+        <span style="text-transform: none">{{ die.toString() }}</span></q-btn
+      >
     </q-page-sticky>
     <DebugDie :die="die" :active="true" bg-color="#d5c396"></DebugDie>
   </q-page>
 </template>
-

@@ -17,7 +17,7 @@ export default defineComponent({
         height="98"
         x="1"
         y="1"
-        ry="35"
+        ry="25"
         stroke-width="2"
       />
       <circle class="dot"

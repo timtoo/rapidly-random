@@ -41,7 +41,7 @@ export default defineComponent({
       }
     );
 
-    //watch(min, ()=> {
+    //watch(min, ()=> { 
     //  console.log('min change')
     //})
 

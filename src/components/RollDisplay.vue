@@ -3,6 +3,8 @@ import { computed, defineComponent, ref, PropType } from 'vue';
 import { rollHistoryType, MODE } from 'components/models';
 import SvgDie6 from 'components/SvgDie6.vue';
 
+const answers = ['No', 'Yes', 'Maybe']
+
 export default defineComponent({
   name: 'RollDisplay',
   props: {
@@ -18,7 +20,7 @@ export default defineComponent({
     let padding = '1em 4em 1em 4em';
     const displayValue = computed(() => {
       if (props.roll) {
-        if (props.roll.mode === MODE.dice) padding = '1em 3em 1em 3em';
+        if (props.roll.mode === MODE.dice) padding = '1em 1em 1em 1em';
         if (props.roll.mode === MODE.hex) {
           return props.value.toString(16);
         } else if (props.roll.mode === MODE.binary) {
@@ -30,6 +32,8 @@ export default defineComponent({
               ).toString(2).length,
               '0'
             );
+        } else if (props.roll.mode === MODE.yesno) {
+          return answers[props.value % 3]
         } else {
           return props.value.toLocaleString();
         }
@@ -51,6 +55,8 @@ export default defineComponent({
   >
     <template v-if="roll && roll.mode === MODE.dice && roll.die.max <= 9">
       <SvgDie6
+        viewBox="0 0 100 100"
+        height="1.5em"
         :value="value"
         :alt="value + ' die'"
         :style="{ transform: 'rotate(' + (Math.random() * 90 - 45) + 'deg)' }"

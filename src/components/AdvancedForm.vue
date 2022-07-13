@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent, ref, watch, computed } from 'vue';
 import { Die } from 'src/die';
-import { MODE, MODES } from 'components/models';
+import { MODE_ICON, MODES } from 'components/models';
 import InputNumber from 'src/components/InputNumber.vue';
 
 export default defineComponent({
@@ -73,7 +73,7 @@ export default defineComponent({
       ctx.emit('advanced-update', [min.value, max.value, dice.value]);
     }
 
-    return { min, max, dice, mode_label, MODES, handleMinMaxDice };
+    return { min, max, dice, mode_label, MODES, MODE_ICON, handleMinMaxDice };
   },
 });
 </script>
@@ -126,11 +126,12 @@ export default defineComponent({
       no-caps
       color="primary"
       :label="mode_label"
+      :icon="MODE_ICON[mode]"
       ><q-list bordered dense class="bg-rrinput">
         <template v-for="m in MODES" :key="m[0]">
           <q-item clickable v-close-popup @click="$emit('mode-change', m[0])">
-            <q-item-section>
-              <q-item-label>{{ m[1] }}</q-item-label>
+            <q-item-section>                
+              <q-item-label><q-icon :name="MODE_ICON[m[0]]"></q-icon>&nbsp;&nbsp;{{ m[1] }}</q-item-label>
             </q-item-section>
           </q-item>
         </template>

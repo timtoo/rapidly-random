@@ -1,7 +1,7 @@
 {
-  "name": "vrndthing",
-  "version": "0.0.1",
-  "description": "A Quasar Project",
+  "name": "Randomly/Die",
+  "version": "2.0.0",
+  "description": "Random number generator with fast UI, dice, hex, binary and secrets",
   "productName": "Rapidly Random",
   "author": "Tim Middleton <x@vaults.ca>",
   "private": true,

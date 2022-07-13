@@ -29,8 +29,8 @@ export default defineComponent({
           rs = 'b' + r.die.getResult().toString(2);
         } else {
           rs = r.die.getResult().toLocaleString();
-          if (r.die.results.length > 1) {
-            rs = rs + ' ' + r.die.getThrow().toString();
+          if (r.die.dice > 1) {
+            rs = rs + ' (' + r.die.getThrow().toString() +')';
           }
         }
         result.push(rs);

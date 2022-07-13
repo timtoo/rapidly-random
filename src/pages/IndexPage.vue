@@ -76,6 +76,10 @@ export default defineComponent({
       return rolls.value.length > 0 ? rolls.value[0] : null;
     });
 
+    const dice_count = computed(() => {
+      return rolls.value.length > 0 ? rolls.value[0].die.dice : 0;
+    });
+
     function bigButtonClick() {
       die.value = letsroll(die.value, mode.value, rolls.value);
       lastUpdate.value = new Date();
@@ -102,6 +106,24 @@ export default defineComponent({
 
     function handleModeChange(m: number) {
       if (m != mode.value) {
+        die.value = die.value.clone()
+        if (m == MODE.hex) {
+          die.value.zerobase = true;
+          die.value.exclusive = true;
+        } else if (m == MODE.yesno) {
+          die.value.zerobase = true;
+          die.value.exclusive = true;
+        } else if (m == MODE.binary) {
+          die.value.zerobase = true;
+          die.value.exclusive = false;
+        } else if (m == MODE.dice) {
+          die.value.zerobase = false;
+          die.value.exclusive = false;
+          die.value.min = 1;
+        } else {
+          die.value.zerobase = false;
+          die.value.exclusive = false;
+        }
         mode.value = m;
       }
     }
@@ -114,6 +136,7 @@ export default defineComponent({
 
     return {
       lastRoll,
+      dice_count,
       lastUpdate,
       mode,
       die,
@@ -136,16 +159,33 @@ export default defineComponent({
 <template>
   <q-page>
     <div class="row justify-center">
-      <template v-if="lastRoll"><div v-for="(v,idx) in lastRoll.die.getThrow()" :key="idx">
-      <roll-display :value="v" :index="idx" :roll="lastRoll" @click="bigButtonClick"></roll-display>
-      </div></template>
+      <template v-if="lastRoll"
+        ><div v-for="(v, idx) in lastRoll.die.getThrow()" :key="idx">
+          <roll-display
+            :value="v"
+            :index="idx"
+            :roll="lastRoll"
+            @click="bigButtonClick"
+          ></roll-display></div
+      ></template>
       <template v-else>
-      <roll-display :value="0" :roll="null" @click="bigButtonClick"></roll-display>
+        <roll-display
+          :value="0"
+          :roll="null"
+          @click="bigButtonClick"
+        ></roll-display>
       </template>
     </div>
     <div class="row justify-center items-start q-mt-sm">
       <i>
-        {{ lastRoll ? lastRoll.die.getRangeString(true, ' to ') : '&nbsp;' }}
+        <template v-if="dice_count > 0">
+          <span v-if="dice_count > 1"
+            >Total: {{ lastRoll?.die.getResult() }}
+            {{ lastRoll?.die.getRangeString(false, ' to ') }} -
+          </span>
+          <span>Range: {{ lastRoll?.die.getRangeString(true, ' to ') }}</span>
+        </template>
+        <template v-else>&nbsp;</template>
       </i>
     </div>
     <div class="row justify-center">
@@ -161,16 +201,16 @@ export default defineComponent({
         @on-quick-button="(v:number) => handleQuickButton(v)"
       ></quick-buttons>
     </div>
-    <div class="row justify-center items-start">
+    <div class="row justify-center items-start q-pt-sm">
       <previous-rolls :rolls="rolls"></previous-rolls>
     </div>
-    <div class="row justify-center">
+    <div class="row justify-center q-pt-sm">
       <history-list
         :rolls="rolls"
         @on-die-chip="(v) => handleChipClick(v)"
       ></history-list>
     </div>
-    <div class="row justify-center">
+    <div class="row justify-center q-pt-sm">
       <AdvancedForm
         :die="die"
         :watchmin="die.min"
@@ -182,6 +222,10 @@ export default defineComponent({
         @exclusive-toggle="() => (die.exclusive = !die.exclusive)"
         @mode-change="(m) => handleModeChange(m)"
       ></AdvancedForm>
+    </div>
+    <div class="row justify-center q-pt-md">
+      <q-btn flat round color="primary" icon="help_outline" />
+      <q-btn flat round color="primary" icon="computer" />
     </div>
 
     <q-page-sticky position="bottom-right" :offset="[20, 20]">
@@ -196,6 +240,6 @@ export default defineComponent({
         <span style="text-transform: none">{{ die.toString() }}</span></q-btn
       >
     </q-page-sticky>
-    <DebugDie :die="die" :active="true" bg-color="#d5c396"></DebugDie>
+    <DebugDie :die="die" :active="false" bg-color="#d5c396"></DebugDie>
   </q-page>
 </template>

@@ -2,24 +2,29 @@ import { Die } from 'src/die';
 
 export enum MODE {
   default,
-  dice,
   binary,
+  dice,
   hex,
+  yesno,
 }
 
 export const MODES: [number, string][] = [
   [MODE.default, 'Normal'],
-  [MODE.dice, 'Dice'],
   [MODE.binary, 'Binary'],
+  [MODE.dice, 'Dice'],
   [MODE.hex, 'Hex'],
+  [MODE.yesno, 'Yes/No'],
 ];
 
-export const MODE_ICON = {
-  [MODE.default]: 'star',
+export const MODE_ICON: {
+  [key: number]: string;
+} = {
+  [MODE.default]: 'tag',
   [MODE.hex]: 'hexagon',
   [MODE.dice]: 'casino',
   [MODE.binary]: 'share',
-}
+  [MODE.yesno]: 'help',
+};
 
 export type rollHistoryType = {
   label: string;

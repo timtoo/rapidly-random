@@ -11,7 +11,7 @@
         /></div -->
 
         <q-toolbar-title class="col-stretch text-h6" style="text-align: center;">
-          Rapidly Random Numbers
+          Randomly/Die
         </q-toolbar-title>
 
         <!-- div class="col-1">&nbsp;</div -->

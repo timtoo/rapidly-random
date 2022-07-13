@@ -65,8 +65,8 @@ export default defineComponent({
     const mode = ref(MODE_ID.default);
     const afrender = ref(0);
 
+    const ttopen = ref(false); // hint tooltip
     //const prevModeState = ref(saveStateDictInit);
-    //const ttopen = ref(false); // hint tooltip
     //const [consoleState, setConsoleState] = useState(false);
     //const [pressRequired, setPressRequired] = useState(true);
     //const consoleInputRef = useRef<HTMLInputElement | null>(null);
@@ -108,11 +108,11 @@ export default defineComponent({
       if (m != mode.value) {
         const new_mode = MODE[m]
         if (new_mode) {
-          const d = die.value.clone()
           die.value = die.value.clone()
           if (new_mode.override) {
             for (const o of Object.keys(new_mode.override)) {
-              (d as any)[o] = (new_mode as any).override[o]
+              //console.log(`current: ${mode.value}, new: ${m}, key: ${o}, val: ${(new_mode as any).override[o]}`);
+              (die.value as any)[o] = (new_mode as any).override[o]
             }
           }
           mode.value = m;
@@ -137,6 +137,7 @@ export default defineComponent({
       min: die.value.min,
       max: die.value.max,
       afrender,
+      ttopen,
       bigButtonClick,
       handleQuickButton,
       handleChipClick,
@@ -216,7 +217,23 @@ export default defineComponent({
       ></AdvancedForm>
     </div>
     <div class="row justify-center q-pt-md">
-      <q-btn flat round color="primary" icon="help_outline" />
+      <q-btn flat round color="primary" icon="help_outline" @click="ttopen = !ttopen"><q-tooltip v-model="ttopen">  <b>Tips!</b>
+                  <ul>
+                    <li>
+                      Click/tap the top box, or the bottom right button, for <b>new number(s)</b>
+                    </li>
+                    <li style="text-decoration: line-through;">
+                      Long press (click and hold) any number to copy to
+                      <b>clipboard</b>
+                    </li>
+                    <li>
+                      Use hex mode <span style="font-family:monospace">x1000000</span> button for random HTML colour codes (or <span style="font-family:monospace">3d256xz</span> if you prefer!)
+                    </li>
+                    <li>Use five dice to play Yahtzee?</li>
+                    <li style="text-decoration: line-through;">` for console. Is that crazy?</li>
+                  </ul>
+                  Use randomness for good.
+                </q-tooltip></q-btn>
       <q-btn flat round color="primary" icon="computer" />
     </div>
 

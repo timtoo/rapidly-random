@@ -30,16 +30,7 @@ export default defineComponent({
     const min = ref(props.die.min);
     const max = ref(props.die.max);
     const dice = ref(props.die.dice);
-    //const current_mode = ref(props.mode);
-
-    //const mode_options = MODES.map((v) => {
-    //  return { label: v[1], value: v[0] };
-    //});
-
-    const mode_label = computed(() => {
-      return MODE[props.mode].name
-    });
-
+  
     // test?
     watch(
       () => props.die,

@@ -1,8 +1,8 @@
 {
-  "name": "Randomly/Die",
+  "name": "randomly-die",
   "version": "2.0.0",
   "description": "Random number generator with fast UI, dice, hex, binary and secrets",
-  "productName": "Rapidly Random",
+  "productName": "Randomly/Die",
   "author": "Tim Middleton <x@vaults.ca>",
   "private": true,
   "scripts": {

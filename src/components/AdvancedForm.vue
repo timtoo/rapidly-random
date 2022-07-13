@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent, ref, watch, computed } from 'vue';
 import { Die } from 'src/die';
-import { MODE_ICON, MODES } from 'components/models';
+import { MODE, MODE_ID } from 'components/models';
 import InputNumber from 'src/components/InputNumber.vue';
 
 export default defineComponent({
@@ -30,16 +30,14 @@ export default defineComponent({
     const min = ref(props.die.min);
     const max = ref(props.die.max);
     const dice = ref(props.die.dice);
-    const current_mode = ref(props.mode);
+    //const current_mode = ref(props.mode);
 
-    const mode_options = MODES.map((v) => {
-      return { label: v[1], value: v[0] };
-    });
+    //const mode_options = MODES.map((v) => {
+    //  return { label: v[1], value: v[0] };
+    //});
 
     const mode_label = computed(() => {
-      return MODES.filter((v) => {
-        return v[0] === props.mode;
-      })[0][1];
+      return MODE[props.mode].name
     });
 
     // test?
@@ -73,7 +71,7 @@ export default defineComponent({
       ctx.emit('advanced-update', [min.value, max.value, dice.value]);
     }
 
-    return { min, max, dice, mode_label, MODES, MODE_ICON, handleMinMaxDice };
+    return { min, max, dice, MODE, handleMinMaxDice };
   },
 });
 </script>
@@ -125,13 +123,13 @@ export default defineComponent({
       outline
       no-caps
       color="primary"
-      :label="mode_label"
-      :icon="MODE_ICON[mode]"
+      :label="MODE[mode].name"
+      :icon="MODE[mode].material_icon"
       ><q-list bordered dense class="bg-rrinput">
-        <template v-for="m in MODES" :key="m[0]">
-          <q-item clickable v-close-popup @click="$emit('mode-change', m[0])">
+        <template v-for="m of Object.keys(MODE).map(k => parseInt(k))" :key="m">
+          <q-item clickable v-close-popup @click="$emit('mode-change', m)">
             <q-item-section>                
-              <q-item-label><q-icon :name="MODE_ICON[m[0]]"></q-icon>&nbsp;&nbsp;{{ m[1] }}</q-item-label>
+              <q-item-label><q-icon :name="MODE[m].material_icon"></q-icon>&nbsp;&nbsp;{{ MODE[m].name }}</q-item-label>
             </q-item-section>
           </q-item>
         </template>

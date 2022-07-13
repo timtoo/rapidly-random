@@ -1,7 +1,7 @@
 <!-- Display list of previous roll results, as a string. -->
 <script lang="ts">
 import { defineComponent, computed, PropType } from 'vue';
-import { MODE, rollHistoryType } from 'components/models';
+import { MODE_ID, rollHistoryType } from 'components/models';
 
 // return list of strings of roll results from history (recent first)
 export default defineComponent({
@@ -23,9 +23,9 @@ export default defineComponent({
         props.skip,
         props.limit + 1 + props.skip
       )) {
-        if (r.mode === MODE.hex) {
+        if (r.mode === MODE_ID.hex) {
           rs = 'x' + r.die.getResult().toString(16);
-        } else if (r.mode === MODE.binary) {
+        } else if (r.mode === MODE_ID.binary) {
           rs = 'b' + r.die.getResult().toString(2);
         } else {
           rs = r.die.getResult().toLocaleString();

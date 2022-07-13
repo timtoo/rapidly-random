@@ -1,6 +1,6 @@
 <script lang="ts">
 import { computed, defineComponent, ref, PropType } from 'vue';
-import { rollHistoryType, MODE } from 'components/models';
+import { rollHistoryType, MODE_ID } from 'components/models';
 import SvgDie6 from 'components/SvgDie6.vue';
 
 const answers = ['No', 'Yes', 'Maybe']
@@ -20,10 +20,10 @@ export default defineComponent({
     let padding = '1em 4em 1em 4em';
     const displayValue = computed(() => {
       if (props.roll) {
-        if (props.roll.mode === MODE.dice) padding = '1em 1em 1em 1em';
-        if (props.roll.mode === MODE.hex) {
+        if (props.roll.mode === MODE_ID.dice) padding = '1em 1em 1em 1em';
+        if (props.roll.mode === MODE_ID.hex) {
           return props.value.toString(16);
-        } else if (props.roll.mode === MODE.binary) {
+        } else if (props.roll.mode === MODE_ID.binary) {
           return props.value
             .toString(2)
             .padStart(
@@ -32,7 +32,7 @@ export default defineComponent({
               ).toString(2).length,
               '0'
             );
-        } else if (props.roll.mode === MODE.yesno) {
+        } else if (props.roll.mode === MODE_ID.yesno) {
           return answers[props.value % 3]
         } else {
           return props.value.toLocaleString();
@@ -41,7 +41,7 @@ export default defineComponent({
       return 'Press Here';
     });
 
-    return { displayValue, padding, ttopen, MODE };
+    return { displayValue, padding, ttopen, MODE_ID };
   },
 });
 </script>
@@ -49,11 +49,11 @@ export default defineComponent({
 <template>
   <q-btn
     unelevated
-    :outline="roll?.mode !== MODE.dice"
+    :outline="roll?.mode !== MODE_ID.dice"
     @click="$emit('onRollDisplayClick')"
     class="q-pa-lg rr-big-btn text-h3"
   >
-    <template v-if="roll && roll.mode === MODE.dice && roll.die.max <= 9">
+    <template v-if="roll && roll.mode === MODE_ID.dice && roll.die.max <= 9">
       <SvgDie6
         viewBox="0 0 100 100"
         height="1.5em"

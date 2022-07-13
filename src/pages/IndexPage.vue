@@ -1,6 +1,6 @@
 <script lang="ts">
 import { computed, defineComponent, ref, shallowRef } from 'vue';
-import { MODE, rollHistoryType } from 'components/models';
+import { MODE, MODE_ID, mode_type, rollHistoryType } from 'components/models';
 import { Die } from 'src/die';
 import AdvancedForm from 'components/AdvancedForm.vue';
 import HistoryList from 'src/components/HistoryList.vue';
@@ -20,7 +20,7 @@ const MAX_HISTORY = MAX_QUANTITY * 5;
 // return a new cloned, but unrolled, die
 function letsroll(
   die: Die,
-  mode: MODE,
+  mode: MODE_ID,
   rolls: rollHistoryType[],
   quantity?: number,
   min?: number,
@@ -62,7 +62,7 @@ export default defineComponent({
     const die = ref(new Die(DEFAULT_MIN, DEFAULT_MAX, DEFAULT_QUANTITY));
     const rolls = ref(_rolls);
     const lastUpdate = ref(new Date());
-    const mode = ref(MODE.default);
+    const mode = ref(MODE_ID.default);
     const afrender = ref(0);
 
     //const prevModeState = ref(saveStateDictInit);
@@ -106,25 +106,17 @@ export default defineComponent({
 
     function handleModeChange(m: number) {
       if (m != mode.value) {
-        die.value = die.value.clone()
-        if (m == MODE.hex) {
-          die.value.zerobase = true;
-          die.value.exclusive = true;
-        } else if (m == MODE.yesno) {
-          die.value.zerobase = true;
-          die.value.exclusive = true;
-        } else if (m == MODE.binary) {
-          die.value.zerobase = true;
-          die.value.exclusive = false;
-        } else if (m == MODE.dice) {
-          die.value.zerobase = false;
-          die.value.exclusive = false;
-          die.value.min = 1;
-        } else {
-          die.value.zerobase = false;
-          die.value.exclusive = false;
+        const new_mode = MODE[m]
+        if (new_mode) {
+          const d = die.value.clone()
+          die.value = die.value.clone()
+          if (new_mode.override) {
+            for (const o of Object.keys(new_mode.override)) {
+              (d as any)[o] = (new_mode as any).override[o]
+            }
+          }
+          mode.value = m;
         }
-        mode.value = m;
       }
     }
 

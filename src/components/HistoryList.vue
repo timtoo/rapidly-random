@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent, computed, PropType } from 'vue';
 import { rollHistoryType } from 'components/models';
-import { MODE_ICON } from 'components/models'
+import { MODE } from 'components/models'
 
 // return list of strings of roll results from history (recent first)
 export default defineComponent({
@@ -36,7 +36,7 @@ export default defineComponent({
       props.rolls.length > 0 ? makeKey(props.rolls[0]) : ''
     );
 
-    return { filteredRolls, makeKey, currentKey, MODE_ICON };
+    return { filteredRolls, makeKey, currentKey, MODE };
   },
 });
 </script>
@@ -55,7 +55,7 @@ export default defineComponent({
           :color="currentKey === makeKey(r) ? 'secondary' : 'primary'"
           clickable
           @click="$emit('onDieChip', r)"
-          :icon="MODE_ICON[r.mode]"
+          :icon="MODE[r.mode].material_icon"
           >{{ r.label }}</q-chip
         >
       </template>

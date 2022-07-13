@@ -1,6 +1,6 @@
 import { Die } from 'src/die';
 
-export enum MODE {
+export enum MODE_ID {
   default,
   binary,
   dice,
@@ -8,28 +8,70 @@ export enum MODE {
   yesno,
 }
 
-export const MODES: [number, string][] = [
-  [MODE.default, 'Normal'],
-  [MODE.binary, 'Binary'],
-  [MODE.dice, 'Dice'],
-  [MODE.hex, 'Hex'],
-  [MODE.yesno, 'Yes/No'],
-];
+export interface mode_type {
+  readonly id: MODE_ID,
+  readonly name: string,
+  readonly material_icon: string,
+  readonly override: object
+}
 
-export const MODE_ICON: {
-  [key: number]: string;
-} = {
-  [MODE.default]: 'tag',
-  [MODE.hex]: 'hexagon',
-  [MODE.dice]: 'casino',
-  [MODE.binary]: 'share',
-  [MODE.yesno]: 'help',
-};
+interface mode_def_type {
+  [key: number]: mode_type
+}
+
+export const MODE: mode_def_type = {
+  [MODE_ID.default]: {
+    id: MODE_ID.default,
+    name: 'Normal',
+    material_icon: 'tag',
+    override: {
+      zerobase: false,
+      exclusive: false
+    } 
+  },
+  [MODE_ID.binary]: {
+    id: MODE_ID.binary,
+    name: 'Binary',
+    material_icon: 'share',
+    override: {
+      zerobase: true,
+      exclusive: false
+    } 
+  },
+  [MODE_ID.dice]: {
+    id: MODE_ID.dice,
+    name: 'Dice',
+    material_icon: 'casino',
+    override: {
+      zerobase: false,
+      exclusive: false,
+      min: 1
+    } 
+  },
+  [MODE_ID.hex]: {
+    id: MODE_ID.hex,
+    name: 'Hexadecimal',
+    material_icon: 'hexagon',
+    override: {
+      zerobase: true,
+      exclusive: true
+    } 
+  },
+  [MODE_ID.yesno]: {
+    id: MODE_ID.yesno,
+    name: 'Yes/No',
+    material_icon: 'help',
+    override: {
+      zerobase: true,
+      exclusive: true
+    } 
+  },
+}
 
 export type rollHistoryType = {
   label: string;
   die: Die;
-  mode: MODE;
+  mode: MODE_ID;
   time: Date;
 };
 

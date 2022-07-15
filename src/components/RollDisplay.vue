@@ -1,9 +1,13 @@
 <script lang="ts">
 import { computed, defineComponent, ref, PropType } from 'vue';
-import { rollHistoryType, MODE_ID } from 'components/models';
+//import { onLongPress } from '@vueuse/core';
+import { vOnLongPress } from '@vueuse/components';
+import { rollHistoryType, MODE_ID, yesno_answers } from 'components/models';
 import SvgDie6 from 'components/SvgDie6.vue';
 
-const answers = ['No', 'Yes', 'Maybe']
+function handleLongPress(e: PointerEvent) {
+  console.log('long pressed');
+}
 
 export default defineComponent({
   name: 'RollDisplay',
@@ -16,6 +20,7 @@ export default defineComponent({
   emits: ['onRollDisplayClick'],
   setup(props) {
     const ttopen = ref(false);
+    //const box_ref = ref<HTMLElement | null>(null);
 
     let padding = '1em 4em 1em 4em';
     const displayValue = computed(() => {
@@ -33,7 +38,7 @@ export default defineComponent({
               '0'
             );
         } else if (props.roll.mode === MODE_ID.yesno) {
-          return answers[props.value % 3]
+          return yesno_answers[props.value % 3];
         } else {
           return props.value.toLocaleString();
         }
@@ -41,9 +46,19 @@ export default defineComponent({
       return 'Press Here';
     });
 
-    return { displayValue, padding, ttopen, MODE_ID };
+    //onLongPress(box_ref, handleLongPress, { delay: 750, modifiers: { prevent: true, stop: true } });
+
+    return {
+      displayValue,
+      padding,
+      ttopen,
+      MODE_ID,
+      handleLongPress,
+      vOnLongPress,
+    };
   },
 });
+//   <div class="clickable" on-long-press="[handleLongPress, { delay: 750 }]">
 </script>
 
 <template>

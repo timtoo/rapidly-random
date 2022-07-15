@@ -68,6 +68,8 @@ export const MODE: mode_def_type = {
   },
 }
 
+export const yesno_answers = ['No', 'Yes', 'Maybe']
+
 export type rollHistoryType = {
   label: string;
   die: Die;

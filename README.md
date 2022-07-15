@@ -1,4 +1,4 @@
-# Rapidly Random
+# Randomly/Die
 
 I just wanted some random numbers and all the web sites offering them seemed
 awkward to me, so...
@@ -22,7 +22,7 @@ app? Namely, the "zero base" and "exclusive" flags. Maybe just append `z` and/or
 seems simple enough? Also I need to specify a minimum value in addition the the
 highest value (i.e the die number). 
 
-### Rapidly Random Expanded Dice Notation
+### Randomly/Die Extended Dice Notation
 
 #### Standard notation:
 

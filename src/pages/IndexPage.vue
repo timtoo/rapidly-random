@@ -48,6 +48,9 @@ function letsroll(
 
 export default defineComponent({
   name: 'IndexPage',
+  props: {
+    options: Object
+  },
   components: {
     QuickButtons,
     RollDisplay,
@@ -56,7 +59,7 @@ export default defineComponent({
     AdvancedForm,
     DebugDie,
   },
-  setup() {
+  setup(props) {
     const _rolls: rollHistoryType[] = [];
     // all prevoius die objects, with label and mode (oldest last)
     const die = ref(new Die(DEFAULT_MIN, DEFAULT_MAX, DEFAULT_QUANTITY));
@@ -91,7 +94,7 @@ export default defineComponent({
       bigButtonClick();
     }
 
-    function advancedUpdate(v: any) {
+    function advancedUpdate(v: number[]) {
       die.value.min = v[0];
       die.value.max = v[1];
       die.value.dice = v[2];
@@ -106,14 +109,11 @@ export default defineComponent({
 
     function handleModeChange(m: number) {
       if (m != mode.value) {
-        const new_mode = MODE[m]
+        const new_mode = MODE[m];
         if (new_mode) {
-          die.value = die.value.clone()
+          die.value = die.value.clone();
           if (new_mode.override) {
-            for (const o of Object.keys(new_mode.override)) {
-              //console.log(`current: ${mode.value}, new: ${m}, key: ${o}, val: ${(new_mode as any).override[o]}`);
-              (die.value as any)[o] = (new_mode as any).override[o]
-            }
+            Object.assign(die.value, new_mode.override)
           }
           mode.value = m;
         }
@@ -178,7 +178,7 @@ export default defineComponent({
           </span>
           <span>Range: {{ lastRoll?.die.getRangeString(true, ' to ') }}</span>
         </template>
-        <template v-else>&nbsp;</template>
+        <template v-else><div style="color:#2a2a5a">&nbsp;{{Math.random().toString().slice(2)}}&nbsp;</div></template>
       </i>
     </div>
     <div class="row justify-center">
@@ -186,7 +186,7 @@ export default defineComponent({
         {{ lastRoll ? lastRoll.time.toLocaleString() : '&nbsp;' }}
       </i>
     </div>
-    <div class="row justify-center q-mt-md">
+    <div class="row justify-center q-mt-md" v-if="!options?.hideQuick">
       <quick-buttons
         label="Quick Roll:"
         :mode="mode"
@@ -194,16 +194,16 @@ export default defineComponent({
         @on-quick-button="(v:number) => handleQuickButton(v)"
       ></quick-buttons>
     </div>
-    <div class="row justify-center items-start q-pt-sm">
+    <div class="row justify-center items-start q-pt-sm" v-if="!options?.hidePrevious">
       <previous-rolls :rolls="rolls"></previous-rolls>
     </div>
-    <div class="row justify-center q-pt-sm">
+    <div class="row justify-center q-pt-sm" v-if="!options?.hideHistory">
       <history-list
         :rolls="rolls"
         @on-die-chip="(v) => handleChipClick(v)"
       ></history-list>
     </div>
-    <div class="row justify-center q-pt-sm">
+    <div class="row justify-center q-pt-sm" v-if="!options?.hideAdvanced">
       <AdvancedForm
         :die="die"
         :watchmin="die.min"
@@ -217,23 +217,38 @@ export default defineComponent({
       ></AdvancedForm>
     </div>
     <div class="row justify-center q-pt-md">
-      <q-btn flat round color="primary" icon="help_outline" @click="ttopen = !ttopen"><q-tooltip v-model="ttopen">  <b>Tips!</b>
-                  <ul>
-                    <li>
-                      Click/tap the top box, or the bottom right button, for <b>new number(s)</b>
-                    </li>
-                    <li style="text-decoration: line-through;">
-                      Long press (click and hold) any number to copy to
-                      <b>clipboard</b>
-                    </li>
-                    <li>
-                      Use hex mode <span style="font-family:monospace">x1000000</span> button for random HTML colour codes (or <span style="font-family:monospace">3d256xz</span> if you prefer!)
-                    </li>
-                    <li>Use five dice to play Yahtzee?</li>
-                    <li style="text-decoration: line-through;">` for console. Is that crazy?</li>
-                  </ul>
-                  Use randomness for good.
-                </q-tooltip></q-btn>
+      <q-btn
+        flat
+        round
+        color="primary"
+        icon="help_outline"
+        @click="ttopen = !ttopen"
+        ><q-tooltip v-model="ttopen">
+          <b>Tips!</b>
+          <ul>
+            <li>
+              Click/tap the top box, or the bottom right button, for
+              <b>new number(s)</b>
+            </li>
+            <li style="text-decoration: line-through">
+              Long press (click and hold) any number to copy to
+              <b>clipboard</b>
+            </li>
+            <li>
+              Use hex mode
+              <span style="font-family: monospace">x1000000</span> button for
+              random HTML colour codes (or
+              <span style="font-family: monospace">3d256xz</span> if you
+              prefer!)
+            </li>
+            <li>Use five dice to play Yahtzee?</li>
+            <li style="text-decoration: line-through">
+              ` for console. Is that crazy?
+            </li>
+          </ul>
+          Use the power of randomness only for good.
+        </q-tooltip></q-btn
+      >
       <q-btn flat round color="primary" icon="computer" />
     </div>
 
@@ -249,6 +264,6 @@ export default defineComponent({
         <span style="text-transform: none">{{ die.toString() }}</span></q-btn
       >
     </q-page-sticky>
-    <DebugDie :die="die" :active="false" bg-color="#d5c396"></DebugDie>
+    <DebugDie :die="die" :active="options?.enableDebug" bg-color="#d5c396"></DebugDie>
   </q-page>
 </template>

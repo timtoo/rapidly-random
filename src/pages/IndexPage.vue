@@ -165,7 +165,7 @@ export default defineComponent({
         <roll-display
           :value="0"
           :roll="null"
-          @click="bigButtonClick"
+          @on-roll-display-click="bigButtonClick"
         ></roll-display>
       </template>
     </div>
@@ -237,8 +237,8 @@ export default defineComponent({
               Click/tap the top box, or the bottom right button, for
               <b>new number(s)</b>
             </li>
-            <li style="text-decoration: line-through">
-              Long press (click and hold) any number to copy to
+            <li>
+              Long press (click and hold) random number to copy to
               <b>clipboard</b>
             </li>
             <li>

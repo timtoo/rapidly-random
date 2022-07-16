@@ -142,8 +142,8 @@ export default defineComponent({
       bigButtonClick();
     });
 
-    onKeyStroke('`', () => console_active.value = true)
-    onKeyStroke('Escape', () => console_active.value = false)
+    onKeyStroke('`', () => (console_active.value = true));
+    onKeyStroke('Escape', () => (console_active.value = false));
 
     return {
       lastRoll,
@@ -253,33 +253,33 @@ export default defineComponent({
         icon="help_outline"
         @click="ttopen = !ttopen"
         ><q-tooltip v-model="ttopen">
-        <div style="font-size: 133%">
-          <b>Tips and tricks!</b>
-          <ul>
-            <li>
-              Click/tap the top box, or the bottom right button, for
-              <b>new number(s)</b> Too obvious?
-            </li>
-            <li>
-              Long press (click and hold) random number to copy to
-              <b>clipboard</b>
-            </li>
-            <li>
-              Hot keys! Min: N/n, Max: X/x, # 'dice': D/d, roll: Enter/Space
-            </li>
-            <li>
-              Use hex mode
-              <span style="font-family: monospace">x1000000</span> button for
-              random HTML colour codes (or
-              <span style="font-family: monospace">3d256xz</span> if you
-              prefer!)
-            </li>
-            <li>Use five dice to play Yahtzee?</li>
-            <li style="text-decoration: line-through">
-              ` for console. Is that crazy?
-            </li>
-          </ul>
-          Use the power of randomness only for good.
+          <div style="font-size: 133%">
+            <b>Tips and tricks!</b>
+            <ul>
+              <li>
+                Click/tap the top box, or the bottom right button, for
+                <b>new number(s)</b> Too obvious?
+              </li>
+              <li>
+                Long press (click and hold) random number to copy to
+                <b>clipboard</b>
+              </li>
+              <li>
+                Hot keys! Min: N/n, Max: X/x, # 'dice': D/d, roll: Enter/Space
+              </li>
+              <li>
+                Use hex mode
+                <span style="font-family: monospace">x1000000</span> button for
+                random HTML colour codes (or
+                <span style="font-family: monospace">3d256xz</span> if you
+                prefer!)
+              </li>
+              <li>Use five dice to play Yahtzee?</li>
+              <li style="text-decoration: line-through">
+                ` for console. Is that crazy?
+              </li>
+            </ul>
+            Use the power of randomness only for good.
           </div>
         </q-tooltip></q-btn
       >
@@ -308,13 +308,15 @@ export default defineComponent({
           stack-label
           bottom-slots
           v-model="console_input"
-                input-class="text-rrinput"
+          input-class="text-rrinput"
         >
           <template v-slot:prepend>
             <q-icon name="computer" color="primary" /> </template
         ></q-input>
         <div class="row justify-end">
-        <q-btn outline @click="console_active = false" color="primary">Esc</q-btn>
+          <q-btn outline @click="console_active = false" color="primary"
+            >Esc</q-btn
+          >
         </div>
       </div>
     </q-dialog>

@@ -31,12 +31,13 @@ export default defineComponent({
     const max = ref(props.die.max);
     const dice = ref(props.die.dice);
   
-    // test?
+    // this is needed to trigger form update on changes (not exactly sure why)
     watch(
       () => props.die,
       () => {
         min.value = props.die.min;
         max.value = props.die.max;
+        dice.value = props.die.dice;
         console.log('af watch die');
       }
     );

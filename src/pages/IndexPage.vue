@@ -126,6 +126,13 @@ export default defineComponent({
       afrender.value++;
     }
 
+    function handleReset() {
+      die.value = new Die(DEFAULT_MIN, DEFAULT_MAX, DEFAULT_QUANTITY)
+      mode.value = MODE_ID.default
+      rolls.value = []
+      // quantity is not resetting
+    }
+
     return {
       lastRoll,
       dice_count,
@@ -143,6 +150,7 @@ export default defineComponent({
       handleChipClick,
       handleZeroBaseToggle,
       handleModeChange,
+      handleReset,
       advancedUpdate,
     };
   },
@@ -257,6 +265,7 @@ export default defineComponent({
         </q-tooltip></q-btn
       >
       <q-btn flat round color="primary" icon="computer" />
+      <q-btn flat round color="primary" icon="refresh" @click="handleReset"><q-tooltip :delay="1000">Reset to defaults</q-tooltip></q-btn>
     </div>
 
     <q-page-sticky position="bottom-right" :offset="[20, 20]">

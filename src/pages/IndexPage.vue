@@ -1,6 +1,6 @@
 <script lang="ts">
-import { computed, defineComponent, ref, shallowRef } from 'vue';
-import { MODE, MODE_ID, mode_type, rollHistoryType } from 'components/models';
+import { computed, defineComponent, ref } from 'vue';
+import { MODE, MODE_ID, rollHistoryType } from 'components/models';
 import { Die } from 'src/die';
 import AdvancedForm from 'components/AdvancedForm.vue';
 import HistoryList from 'src/components/HistoryList.vue';
@@ -49,7 +49,7 @@ function letsroll(
 export default defineComponent({
   name: 'IndexPage',
   props: {
-    options: Object
+    options: Object,
   },
   components: {
     QuickButtons,
@@ -59,7 +59,7 @@ export default defineComponent({
     AdvancedForm,
     DebugDie,
   },
-  setup(props) {
+  setup() {
     const _rolls: rollHistoryType[] = [];
     // all prevoius die objects, with label and mode (oldest last)
     const die = ref(new Die(DEFAULT_MIN, DEFAULT_MAX, DEFAULT_QUANTITY));
@@ -113,7 +113,7 @@ export default defineComponent({
         if (new_mode) {
           die.value = die.value.clone();
           if (new_mode.override) {
-            Object.assign(die.value, new_mode.override)
+            Object.assign(die.value, new_mode.override);
           }
           mode.value = m;
         }
@@ -158,7 +158,7 @@ export default defineComponent({
             :value="v"
             :index="idx"
             :roll="lastRoll"
-            @click="bigButtonClick"
+            @on-roll-display-click="bigButtonClick"
           ></roll-display></div
       ></template>
       <template v-else>
@@ -178,7 +178,11 @@ export default defineComponent({
           </span>
           <span>Range: {{ lastRoll?.die.getRangeString(true, ' to ') }}</span>
         </template>
-        <template v-else><div style="color:#2a2a5a">&nbsp;{{Math.random().toString().slice(2)}}&nbsp;</div></template>
+        <template v-else
+          ><div style="color: #2a2a5a">
+            &nbsp;{{ Math.random().toString().slice(2) }}&nbsp;
+          </div></template
+        >
       </i>
     </div>
     <div class="row justify-center">
@@ -194,7 +198,10 @@ export default defineComponent({
         @on-quick-button="(v:number) => handleQuickButton(v)"
       ></quick-buttons>
     </div>
-    <div class="row justify-center items-start q-pt-sm" v-if="!options?.hidePrevious">
+    <div
+      class="row justify-center items-start q-pt-sm"
+      v-if="!options?.hidePrevious"
+    >
       <previous-rolls :rolls="rolls"></previous-rolls>
     </div>
     <div class="row justify-center q-pt-sm" v-if="!options?.hideHistory">
@@ -264,6 +271,10 @@ export default defineComponent({
         <span style="text-transform: none">{{ die.toString() }}</span></q-btn
       >
     </q-page-sticky>
-    <DebugDie :die="die" :active="options?.enableDebug" bg-color="#d5c396"></DebugDie>
+    <DebugDie
+      :die="die"
+      :active="options?.enableDebug"
+      bg-color="#d5c396"
+    ></DebugDie>
   </q-page>
 </template>

@@ -61,8 +61,8 @@ export default defineComponent({
             @click="toggleLeftDrawer"
           ></q-btn>
         </div>
-        <q-item-label header>
-          <span style="color: black">Options</span>
+        <q-item-label header class="rr-drawer-header">
+          <span>Options</span>
         </q-item-label>
         <q-item>
           <q-toggle
@@ -102,8 +102,7 @@ export default defineComponent({
       </q-list>
     </q-drawer>
 
-    <q-page-container
-      >;
+    <q-page-container>
       <router-view :options="options" />
     </q-page-container>
   </q-layout>
@@ -112,6 +111,10 @@ export default defineComponent({
 <style lang="scss">
 .rr-drawer {
   background-color: $background !important;
+  color: $text-default;
+}
+.rr-drawer-header {
+  background-color: $primary;
   color: $text-default;
 }
 </style>

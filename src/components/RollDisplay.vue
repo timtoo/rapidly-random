@@ -1,13 +1,9 @@
 <script lang="ts">
 import { computed, defineComponent, ref, PropType } from 'vue';
-//import { onLongPress } from '@vueuse/core';
-import { vOnLongPress } from '@vueuse/components';
+import { onLongPress } from '@vueuse/core';
+import { useQuasar, copyToClipboard } from 'quasar';
 import { rollHistoryType, MODE_ID, yesno_answers } from 'components/models';
 import SvgDie6 from 'components/SvgDie6.vue';
-
-function handleLongPress(e: PointerEvent) {
-  console.log('long pressed');
-}
 
 export default defineComponent({
   name: 'RollDisplay',
@@ -19,10 +15,12 @@ export default defineComponent({
   components: { SvgDie6 },
   emits: ['onRollDisplayClick'],
   setup(props) {
+    const $q = useQuasar();
+    const btn_ref = ref<HTMLElement | null>(null);
+    const inLongPress = ref(false);
     const ttopen = ref(false);
-    //const box_ref = ref<HTMLElement | null>(null);
-
     let padding = '1em 4em 1em 4em';
+
     const displayValue = computed(() => {
       if (props.roll) {
         if (props.roll.mode === MODE_ID.dice) padding = '1em 1em 1em 1em';
@@ -46,15 +44,49 @@ export default defineComponent({
       return 'Press Here';
     });
 
-    //onLongPress(box_ref, handleLongPress, { delay: 750, modifiers: { prevent: true, stop: true } });
+    function handleLongPress() {
+      inLongPress.value = true;
+      if (props.roll) {
+        copyToClipboard(
+          displayValue.value +
+            (displayValue.value !== props.value.toString()
+              ? ' (' + props.value + ')'
+              : '')
+        )
+          .then(() => {
+            $q.notify({
+              message: 'Copied to clipboard!',
+              icon: 'announcement',
+              color: 'primary',
+              position: 'top',
+              textColor: 'background',
+            });
+          })
+          .catch(() => {
+            $q.notify({
+              message: 'Clipboard failed',
+              icon: 'warning',
+              color: 'warn',
+              position: 'top',
+              textColor: 'background',
+            });
+          });
+      }
+    }
+
+    onLongPress(btn_ref, handleLongPress, {
+      delay: 1000,
+      modifiers: { stop: true, prevent: true },
+    });
 
     return {
+      btn_ref,
       displayValue,
+      handleLongPress,
+      inLongPress,
+      MODE_ID,
       padding,
       ttopen,
-      MODE_ID,
-      handleLongPress,
-      vOnLongPress,
     };
   },
 });
@@ -63,9 +95,10 @@ export default defineComponent({
 
 <template>
   <q-btn
+    ref="btn_ref"
     unelevated
     :outline="roll?.mode !== MODE_ID.dice"
-    @click="$emit('onRollDisplayClick')"
+    @click="inLongPress ? (inLongPress = false) : $emit('onRollDisplayClick')"
     class="q-pa-lg rr-big-btn text-h3"
   >
     <template v-if="roll && roll.mode === MODE_ID.dice && roll.die.max <= 9">

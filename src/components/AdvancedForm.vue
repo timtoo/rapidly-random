@@ -3,6 +3,7 @@ import { defineComponent, ref, watch, computed } from 'vue';
 import { Die } from 'src/die';
 import { MODE, MODE_ID } from 'components/models';
 import InputNumber from 'src/components/InputNumber.vue';
+import { onKeyStroke } from '@vueuse/core';
 
 export default defineComponent({
   props: {
@@ -30,7 +31,7 @@ export default defineComponent({
     const min = ref(props.die.min);
     const max = ref(props.die.max);
     const dice = ref(props.die.dice);
-  
+
     // this is needed to trigger form update on changes (not exactly sure why)
     watch(
       () => props.die,
@@ -54,7 +55,7 @@ export default defineComponent({
       } else if (v === 'max') {
         if (max.value <= min.value) max.value = min.value + 1;
         ctx.emit('input', max.value, v);
-      } else if (v === 'repeat') {
+      } else if (v === 'dice') {
         if (dice.value < 1) dice.value = 1;
         if (dice.value > 10) dice.value = 10;
         ctx.emit('input', dice.value, v);
@@ -62,6 +63,31 @@ export default defineComponent({
       console.log('new minmax ', min.value, ' ', max.value, ' ', dice.value);
       ctx.emit('advanced-update', [min.value, max.value, dice.value]);
     }
+
+    onKeyStroke('d', () => {
+      dice.value = dice.value + 1;
+      handleMinMaxDice('dice');
+    });
+    onKeyStroke('D', () => {
+      dice.value = dice.value - 1;
+      handleMinMaxDice('dice');
+    });
+    onKeyStroke('x', () => {
+      max.value = max.value + 1;
+      handleMinMaxDice('max');
+    });
+    onKeyStroke('X', () => {
+      max.value = max.value - 1;
+      handleMinMaxDice('max');
+    });
+    onKeyStroke('n', () => {
+      min.value = min.value + 1;
+      handleMinMaxDice('min');
+    });
+    onKeyStroke('N', () => {
+      min.value = min.value - 1;
+      handleMinMaxDice('min');
+    });
 
     return { min, max, dice, MODE, handleMinMaxDice };
   },
@@ -118,10 +144,17 @@ export default defineComponent({
       :label="MODE[mode].name"
       :icon="MODE[mode].material_icon"
       ><q-list bordered dense class="bg-rrinput">
-        <template v-for="m of Object.keys(MODE).map(k => parseInt(k))" :key="m">
+        <template
+          v-for="m of Object.keys(MODE).map((k) => parseInt(k))"
+          :key="m"
+        >
           <q-item clickable v-close-popup @click="$emit('mode-change', m)">
-            <q-item-section>                
-              <q-item-label><q-icon :name="MODE[m].material_icon"></q-icon>&nbsp;&nbsp;{{ MODE[m].name }}</q-item-label>
+            <q-item-section>
+              <q-item-label
+                ><q-icon :name="MODE[m].material_icon"></q-icon>&nbsp;&nbsp;{{
+                  MODE[m].name
+                }}</q-item-label
+              >
             </q-item-section>
           </q-item>
         </template>

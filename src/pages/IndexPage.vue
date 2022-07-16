@@ -8,6 +8,7 @@ import PreviousRolls from 'components/PreviousRolls.vue';
 import QuickButtons from 'components/QuickButtons.vue';
 import RollDisplay from 'components/RollDisplay.vue';
 import DebugDie from 'components/DebugDie.vue';
+import { onKeyStroke } from '@vueuse/core'
 
 const DEFAULT_QUANTITY = 1;
 const DEFAULT_MIN = 1;
@@ -133,6 +134,8 @@ export default defineComponent({
       // quantity is not resetting
     }
 
+    onKeyStroke([' ', 'Enter'], (e) => {e.preventDefault(); bigButtonClick()})
+
     return {
       lastRoll,
       dice_count,
@@ -256,6 +259,7 @@ export default defineComponent({
               <span style="font-family: monospace">3d256xz</span> if you
               prefer!)
             </li>
+            <li>Hot keys! Min: N/n, Max: X/x, # 'dice': D/d, roll: Enter/Space</li>
             <li>Use five dice to play Yahtzee?</li>
             <li style="text-decoration: line-through">
               ` for console. Is that crazy?

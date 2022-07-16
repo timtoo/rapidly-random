@@ -8,7 +8,7 @@ import PreviousRolls from 'components/PreviousRolls.vue';
 import QuickButtons from 'components/QuickButtons.vue';
 import RollDisplay from 'components/RollDisplay.vue';
 import DebugDie from 'components/DebugDie.vue';
-import { onKeyStroke } from '@vueuse/core'
+import { onKeyStroke } from '@vueuse/core';
 
 const DEFAULT_QUANTITY = 1;
 const DEFAULT_MIN = 1;
@@ -67,6 +67,9 @@ export default defineComponent({
     const rolls = ref(_rolls);
     const lastUpdate = ref(new Date());
     const mode = ref(MODE_ID.default);
+    const console_active = ref(false);
+    const console_input = ref('');
+
     const afrender = ref(0);
 
     const ttopen = ref(false); // hint tooltip
@@ -128,13 +131,19 @@ export default defineComponent({
     }
 
     function handleReset() {
-      die.value = new Die(DEFAULT_MIN, DEFAULT_MAX, DEFAULT_QUANTITY)
-      mode.value = MODE_ID.default
-      rolls.value = []
+      die.value = new Die(DEFAULT_MIN, DEFAULT_MAX, DEFAULT_QUANTITY);
+      mode.value = MODE_ID.default;
+      rolls.value = [];
       // quantity is not resetting
     }
 
-    onKeyStroke([' ', 'Enter'], (e) => {e.preventDefault(); bigButtonClick()})
+    onKeyStroke([' ', 'Enter'], (e) => {
+      e.preventDefault();
+      bigButtonClick();
+    });
+
+    onKeyStroke('`', () => console_active.value = true)
+    onKeyStroke('Escape', () => console_active.value = false)
 
     return {
       lastRoll,
@@ -148,6 +157,8 @@ export default defineComponent({
       max: die.value.max,
       afrender,
       ttopen,
+      console_active,
+      console_input,
       bigButtonClick,
       handleQuickButton,
       handleChipClick,
@@ -242,15 +253,19 @@ export default defineComponent({
         icon="help_outline"
         @click="ttopen = !ttopen"
         ><q-tooltip v-model="ttopen">
-          <b>Tips!</b>
+        <div style="font-size: 133%">
+          <b>Tips and tricks!</b>
           <ul>
             <li>
               Click/tap the top box, or the bottom right button, for
-              <b>new number(s)</b>
+              <b>new number(s)</b> Too obvious?
             </li>
             <li>
               Long press (click and hold) random number to copy to
               <b>clipboard</b>
+            </li>
+            <li>
+              Hot keys! Min: N/n, Max: X/x, # 'dice': D/d, roll: Enter/Space
             </li>
             <li>
               Use hex mode
@@ -259,18 +274,50 @@ export default defineComponent({
               <span style="font-family: monospace">3d256xz</span> if you
               prefer!)
             </li>
-            <li>Hot keys! Min: N/n, Max: X/x, # 'dice': D/d, roll: Enter/Space</li>
             <li>Use five dice to play Yahtzee?</li>
             <li style="text-decoration: line-through">
               ` for console. Is that crazy?
             </li>
           </ul>
           Use the power of randomness only for good.
+          </div>
         </q-tooltip></q-btn
       >
-      <q-btn flat round color="primary" icon="computer" />
-      <q-btn flat round color="primary" icon="refresh" @click="handleReset"><q-tooltip :delay="1000">Reset to defaults</q-tooltip></q-btn>
+      <q-btn
+        flat
+        round
+        color="primary"
+        icon="computer"
+        @click="console_active = !console_active"
+      />
+      <q-btn flat round color="primary" icon="refresh" @click="handleReset"
+        ><q-tooltip :delay="1000">Reset to defaults</q-tooltip></q-btn
+      >
     </div>
+
+    <q-dialog v-model="console_active" seamless position="bottom">
+      <div class="console rounded">
+        <q-input
+          label="Console"
+          placeholder="Dice hacking mode enabled..."
+          hint="Sadly this doesn't work well..."
+          filled
+          clearable
+          autofocus
+          outlined
+          stack-label
+          bottom-slots
+          v-model="console_input"
+                input-class="text-rrinput"
+        >
+          <template v-slot:prepend>
+            <q-icon name="computer" color="primary" /> </template
+        ></q-input>
+        <div class="row justify-end">
+        <q-btn outline @click="console_active = false" color="primary">Esc</q-btn>
+        </div>
+      </div>
+    </q-dialog>
 
     <q-page-sticky position="bottom-right" :offset="[20, 20]">
       <q-btn
@@ -291,3 +338,14 @@ export default defineComponent({
     ></DebugDie>
   </q-page>
 </template>
+
+<style lang="scss">
+.console {
+  color: $text-default;
+  background-color: $paper;
+  border-radius: 4px;
+  margin: 1em;
+  padding: 1em;
+  width: 80vw;
+}
+</style>

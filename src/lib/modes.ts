@@ -21,6 +21,7 @@ class ModeBase {
   readonly override: override_interface = {}; // zerobase, inclusive, maybe min/max default settings
   readonly quick: number[] = []; // array of numbers to offer as quick buttons
   readonly default_max: number = -1; // default quick active button, essentially; also default mapping
+  readonly summable?: boolean = true; // values can be added together
   readonly mappings?: { [max: number]: string[] }; // results to display rather than numbers
   quick_label: string[] = []; // optional labels to use instead of numbers on quick buttons
 
@@ -59,6 +60,31 @@ class ModeBase {
     }
     return this.formatValue(v);
   }
+
+  // override in case history string should be different from displayValue()
+  historyValue(v: number, max?: number): string {
+    return this.displayValue(v, max)
+  }
+
+  // if given multiple values, how to display them? depends on this.summable 
+  displayMulti(v: number[], max?: number): string {
+    if (this.summable)
+      return this._displayMultiWithTotal(v, max)
+    return this._displayMultiValsOnly(v, max)
+  }
+
+  // return formated total, with individual values in brackets after
+  _displayMultiWithTotal(v: number[], max?: number): string {
+    const displayTotal = this.displayValue(v.reduce((p,c) => p+c))
+    const displayVals = v.map((i) => this.displayValue(i, max))
+    return displayTotal + ' (' + displayVals.join(',') + ')'
+  }
+
+  // alternate display without total
+  _displayMultiValsOnly(v: number[], max?: number): string {
+    const displayVals = v.map((i) => this.displayValue(i, max))
+    return displayVals.join(',')
+  }
 }
 
 class ModeNormal extends ModeBase {
@@ -89,11 +115,15 @@ class ModeBinary extends ModeBase {
   displayValue(v: number, max: number): string {
     // to avoid constant leading zero in exclusive mode, modify max when passing in like:
     // props.roll.die.max - (props.roll.die.exclusive ? 1 : 0)
-    return v.toString(2).padStart(max.toString(2).length, '0');
+    return this.formatValue(v).padStart(max.toString(2).length, '0');
   }
 
   formatValue(v: number): string {
     return v.toString(2);
+  }
+
+  historyValue(v: number, max: number): string {
+    return 'b' + this.displayValue(v, max)
   }
 }
 
@@ -126,6 +156,10 @@ class ModeHex extends ModeBase {
   formatValue(v: number): string {
     return v.toString(16);
   }
+
+  historyValue(v: number, max: number): string {
+    return 'x' + this.displayValue(v, max)
+  }
 }
 
 class ModeYesNo extends ModeBase {
@@ -136,6 +170,7 @@ class ModeYesNo extends ModeBase {
     zerobase: true,
     exclusive: true,
   };
+  summable = false;
   mappings = {
     [2]: ['No', 'Yes'],
     [3]: ['No', 'Yes', 'Maybe'],
@@ -144,6 +179,7 @@ class ModeYesNo extends ModeBase {
   };
   quick = [2, 3, 4, 5];
   default_max = 2;
+
 }
 
 class ModeNote extends ModeBase {
@@ -156,6 +192,7 @@ class ModeNote extends ModeBase {
     min: 1,
     max: 12,
   };
+  summable = false;
   mappings = {
     [7]: ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
     [12]: [

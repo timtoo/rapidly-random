@@ -1,7 +1,8 @@
 <script lang="ts">
 import { computed, defineComponent, ref } from 'vue';
-import { MODE, MODE_ID, rollHistoryType } from 'components/models';
-import { Die } from 'src/die';
+import { rollHistoryType } from 'components/models';
+import { MODE_ID, MODE } from 'src/lib/modes'
+import { Die } from 'src/lib/die';
 import AdvancedForm from 'components/AdvancedForm.vue';
 import HistoryList from 'src/components/HistoryList.vue';
 import PreviousRolls from 'components/PreviousRolls.vue';

@@ -1,7 +1,7 @@
 <script lang="ts">
 import { ref, defineComponent, PropType, computed } from 'vue';
 
-import { MODE_ID, MODE } from 'components/models';
+import { MODE_ID, MODE } from 'src/lib/modes';
 
 export default defineComponent({
   name: 'QuickButtons',

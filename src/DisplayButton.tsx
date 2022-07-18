@@ -3,7 +3,7 @@ import { useLongPress } from "use-long-press";
 import { useState } from "react";
 import Dice from "./dicesvg";
 import { useTheme } from "@emotion/react";
-import { Die } from "./die";
+import { Die } from "./lib/die";
 
 enum MODE {
   default,

@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent, ref, watch, computed } from 'vue';
-import { Die } from 'src/die';
-import { MODE, MODE_ID } from 'components/models';
+import { Die } from 'src/lib/die';
+import { MODE } from 'src/lib/modes';
 import InputNumber from 'src/components/InputNumber.vue';
 import { onKeyStroke } from '@vueuse/core';
 

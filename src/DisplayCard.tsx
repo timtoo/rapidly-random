@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import { useLongPress } from "use-long-press";
 import Dice from "./dicesvg";
-import { Die } from "./die";
+import { Die } from "./lib/die";
 
 type DisplayCardProps = {
   value: number | string;

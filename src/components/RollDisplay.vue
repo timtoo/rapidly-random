@@ -2,7 +2,8 @@
 import { computed, defineComponent, ref, PropType } from 'vue';
 import { onLongPress } from '@vueuse/core';
 import { useQuasar, copyToClipboard } from 'quasar';
-import { rollHistoryType, MODE_ID, MODE } from 'components/models';
+import { rollHistoryType } from 'components/models';
+import { MODE_ID, MODE } from 'src/lib/modes';
 import SvgDie6 from 'components/SvgDie6.vue';
 
 export default defineComponent({
@@ -24,22 +25,10 @@ export default defineComponent({
     const displayValue = computed(() => {
       if (props.roll) {
         if (props.roll.mode === MODE_ID.dice) padding = '1em 1em 1em 1em';
-        if (props.roll.mode === MODE_ID.hex) {
-          return props.value.toString(16);
-        } else if (props.roll.mode === MODE_ID.binary) {
-          return props.value
-            .toString(2)
-            .padStart(
-              (
-                props.roll.die.max - (props.roll.die.exclusive ? 1 : 0)
-              ).toString(2).length,
-              '0'
-            );
-        } else if (MODE[props.roll.mode].mapping && Object.keys(MODE[props.roll.mode].mapping)) {
-          return yesno_answers[props.value % 3];
-        } else {
-          return props.value.toLocaleString();
-        }
+        return MODE[props.roll.mode].displayValue(
+          props.value,
+          props.roll.die.max
+        );
       }
       return 'Press Here';
     });
@@ -111,7 +100,16 @@ export default defineComponent({
       ></SvgDie6>
     </template>
     <template v-else>
-      {{ displayValue }}
+      <span v-html="displayValue"></span>
     </template>
   </q-btn>
 </template>
+
+<style lang="scss">
+.rr-big-btn {
+  color: $primary;
+  min-width: 2.6em;
+  font-variant: small-caps;
+  text-transform: none;
+}
+</style>

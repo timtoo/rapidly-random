@@ -1,7 +1,7 @@
 <!-- Put a semi-transparent div in the corner with info. Click to move. -->
 <script setup lang="ts">
 import { ref, defineProps } from 'vue';
-import { Die } from 'src/die';
+import { Die } from 'src/lib/die';
 
 const props = defineProps({ die: Die, active: Boolean, bgColor: String });
 

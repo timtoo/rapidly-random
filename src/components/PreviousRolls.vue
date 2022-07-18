@@ -1,7 +1,8 @@
 <!-- Display list of previous roll results, as a string. -->
 <script lang="ts">
 import { defineComponent, computed, PropType } from 'vue';
-import { MODE_ID, rollHistoryType } from 'components/models';
+import { rollHistoryType } from 'components/models';
+import { MODE_ID } from 'src/lib/modes';
 
 // return list of strings of roll results from history (recent first)
 export default defineComponent({

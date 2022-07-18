@@ -36,7 +36,7 @@ import {
   ModeEdit,
   Looks6Outlined,
 } from "@mui/icons-material";
-import { Die } from "./die";
+import { Die } from "./lib/die";
 import DisplayCard from "./DisplayCard";
 import DisplayButton from "./DisplayButton";
 import { useTheme } from "@emotion/react";

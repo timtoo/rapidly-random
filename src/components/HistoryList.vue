@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent, computed, PropType } from 'vue';
 import { rollHistoryType } from 'components/models';
-import { MODE } from 'components/models'
+import { MODE } from 'src/lib/modes'
 
 // return list of strings of roll results from history (recent first)
 export default defineComponent({

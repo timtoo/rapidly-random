@@ -1,3 +1,4 @@
+// Jest test file
 import { Die } from "./die";
 
 // [string to parse]: [expecte dice object], [expected string], [compact string]

@@ -17,6 +17,7 @@ export default defineComponent({
     },
     watchmin: Number,
     watchmax: Number,
+    ignore_hotkeys: { type: Boolean, default: true },
     afrender: Number,
   },
   emits: [
@@ -65,28 +66,40 @@ export default defineComponent({
     }
 
     onKeyStroke('d', () => {
-      dice.value = dice.value + 1;
-      handleMinMaxDice('dice');
+      if (!props.ignore_hotkeys) {
+        dice.value = dice.value + 1;
+        handleMinMaxDice('dice');
+      }
     });
     onKeyStroke('D', () => {
-      dice.value = dice.value - 1;
-      handleMinMaxDice('dice');
+      if (!props.ignore_hotkeys) {
+        dice.value = dice.value - 1;
+        handleMinMaxDice('dice');
+      }
     });
     onKeyStroke('x', () => {
-      max.value = max.value + 1;
-      handleMinMaxDice('max');
+      if (!props.ignore_hotkeys) {
+        max.value = max.value + 1;
+        handleMinMaxDice('max');
+      }
     });
     onKeyStroke('X', () => {
-      max.value = max.value - 1;
-      handleMinMaxDice('max');
+      if (!props.ignore_hotkeys) {
+        max.value = max.value - 1;
+        handleMinMaxDice('max');
+      }
     });
     onKeyStroke('n', () => {
-      min.value = min.value + 1;
-      handleMinMaxDice('min');
+      if (!props.ignore_hotkeys) {
+        min.value = min.value + 1;
+        handleMinMaxDice('min');
+      }
     });
     onKeyStroke('N', () => {
-      min.value = min.value - 1;
-      handleMinMaxDice('min');
+      if (!props.ignore_hotkeys) {
+        min.value = min.value - 1;
+        handleMinMaxDice('min');
+      }
     });
 
     return { min, max, dice, MODE, handleMinMaxDice };

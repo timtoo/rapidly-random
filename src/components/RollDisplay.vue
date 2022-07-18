@@ -2,7 +2,7 @@
 import { computed, defineComponent, ref, PropType } from 'vue';
 import { onLongPress } from '@vueuse/core';
 import { useQuasar, copyToClipboard } from 'quasar';
-import { rollHistoryType, MODE_ID, yesno_answers } from 'components/models';
+import { rollHistoryType, MODE_ID, MODE } from 'components/models';
 import SvgDie6 from 'components/SvgDie6.vue';
 
 export default defineComponent({
@@ -35,7 +35,7 @@ export default defineComponent({
               ).toString(2).length,
               '0'
             );
-        } else if (props.roll.mode === MODE_ID.yesno) {
+        } else if (MODE[props.roll.mode].mapping && Object.keys(MODE[props.roll.mode].mapping)) {
           return yesno_answers[props.value % 3];
         } else {
           return props.value.toLocaleString();

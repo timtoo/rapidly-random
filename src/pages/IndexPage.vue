@@ -7,6 +7,7 @@ import HistoryList from 'src/components/HistoryList.vue';
 import PreviousRolls from 'components/PreviousRolls.vue';
 import QuickButtons from 'components/QuickButtons.vue';
 import RollDisplay from 'components/RollDisplay.vue';
+import DieConsole from 'components/DieConsole.vue';
 import DebugDie from 'components/DebugDie.vue';
 import { onKeyStroke } from '@vueuse/core';
 
@@ -58,6 +59,7 @@ export default defineComponent({
     PreviousRolls,
     HistoryList,
     AdvancedForm,
+    DieConsole,
     DebugDie,
   },
   setup() {
@@ -68,7 +70,6 @@ export default defineComponent({
     const lastUpdate = ref(new Date());
     const mode = ref(MODE_ID.default);
     const console_active = ref(false);
-    const console_input = ref('');
 
     const afrender = ref(0);
 
@@ -158,7 +159,6 @@ export default defineComponent({
       afrender,
       ttopen,
       console_active,
-      console_input,
       bigButtonClick,
       handleQuickButton,
       handleChipClick,
@@ -238,6 +238,7 @@ export default defineComponent({
         :watchmin="die.min"
         :watchmax="die.max"
         :mode="mode"
+        :ignore_hotkeys="console_active"
         :afrender="afrender"
         @advanced-update="(v) => advancedUpdate(v)"
         @base-toggle="handleZeroBaseToggle"
@@ -275,11 +276,9 @@ export default defineComponent({
                 prefer!)
               </li>
               <li>Use five dice to play Yahtzee?</li>
-              <li style="text-decoration: line-through">
-                ` for console. Is that crazy?
-              </li>
+              <li>` for console. Is that crazy?</li>
             </ul>
-            Use the power of randomness only for good.
+            <i>Use the power of randomness only for good. Please.</i>
           </div>
         </q-tooltip></q-btn
       >
@@ -295,32 +294,10 @@ export default defineComponent({
       >
     </div>
 
-    <q-dialog v-model="console_active" seamless position="bottom">
-      <div class="console rounded">
-        <q-input
-          label="Console"
-          placeholder="Dice hacking mode enabled..."
-          hint="Sadly this doesn't work well..."
-          filled
-          clearable
-          autofocus
-          outlined
-          stack-label
-          bottom-slots
-          v-model="console_input"
-          input-class="text-rrinput"
-        >
-          <template v-slot:prepend>
-            <q-icon name="computer" color="primary" /> </template
-        ></q-input>
-        <div class="row justify-end">
-          <q-btn outline @click="console_active = false" color="primary"
-            >Esc</q-btn
-          >
-        </div>
-      </div>
-    </q-dialog>
+    <!-- Console -->
+    <DieConsole :active="console_active" @console-close="console_active=false"></DieConsole>
 
+    <!-- FAB -->
     <q-page-sticky position="bottom-right" :offset="[20, 20]">
       <q-btn
         fab
@@ -333,6 +310,7 @@ export default defineComponent({
         <span style="text-transform: none">{{ die.toString() }}</span></q-btn
       >
     </q-page-sticky>
+
     <DebugDie
       :die="die"
       :active="options?.enableDebug"
@@ -340,14 +318,3 @@ export default defineComponent({
     ></DebugDie>
   </q-page>
 </template>
-
-<style lang="scss">
-.console {
-  color: $text-default;
-  background-color: $paper;
-  border-radius: 4px;
-  margin: 1em;
-  padding: 1em;
-  width: 80vw;
-}
-</style>

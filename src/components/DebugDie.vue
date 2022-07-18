@@ -18,15 +18,6 @@ function handleClick() {
 }
 </script>
 
-<style lang="css">
-.debug-sticky {
-  background-color: rgb(250, 250, 175);
-  opacity: 0.5;
-  color: black;
-  font-size: 8pt;
-}
-</style>
-
 <template>
   <div v-if="active">
     <q-page-sticky :position="(loc as any)" :offset="[18, 18]">
@@ -36,3 +27,12 @@ function handleClick() {
     </q-page-sticky>
   </div>
 </template>
+
+<style lang="css">
+.debug-sticky {
+  background-color: rgb(250, 250, 175);
+  opacity: 0.5;
+  color: black;
+  font-size: 8pt;
+}
+</style>

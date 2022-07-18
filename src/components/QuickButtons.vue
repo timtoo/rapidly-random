@@ -1,19 +1,7 @@
 <script lang="ts">
 import { ref, defineComponent, PropType, computed } from 'vue';
 
-import { MODE_ID } from 'components/models';
-
-const quick_sets = {
-  [MODE_ID.default as number]: [
-    2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 30, 50, 100, 256, 1000, 1000000,
-  ],
-  [MODE_ID.hex as number]: [
-    16, 32, 64, 128, 256, 1024, 2048, 4096, 8192, 65536, 1048576, 16777216,
-  ],
-  [MODE_ID.dice as number]: [2, 4, 6, 8, 10, 12, 20, 100],
-  [MODE_ID.binary as number]: [2, 4, 8, 16, 32, 64, 256, 256 * 256],
-  [MODE_ID.yesno as number]: [2, 3],
-};
+import { MODE_ID, MODE } from 'components/models';
 
 export default defineComponent({
   name: 'QuickButtons',
@@ -34,7 +22,7 @@ export default defineComponent({
   },
   emits: ['onQuickButton'],
   setup(props) {
-    const button_set = computed(() => quick_sets[props.mode]);
+    const button_set = computed(() => MODE[props.mode].quick);
     return { button_set, MODE: MODE_ID };
   },
 });

@@ -71,15 +71,9 @@ export default defineComponent({
     const lastUpdate = ref(new Date());
     const mode = ref(MODE_ID.default);
     const console_active = ref(false);
-
-    const afrender = ref(0);
-
+    const console_error = ref('')
     const ttopen = ref(false); // hint tooltip
-    //const prevModeState = ref(saveStateDictInit);
-    //const [consoleState, setConsoleState] = useState(false);
-    //const [pressRequired, setPressRequired] = useState(true);
-    //const consoleInputRef = useRef<HTMLInputElement | null>(null);
-    //const quantityInputRef = useRef<HTMLInputElement | null>(null);
+    const afrender = ref(0);
 
     const lastRoll = computed(() => {
       return rolls.value.length > 0 ? rolls.value[0] : null;
@@ -139,9 +133,29 @@ export default defineComponent({
       // quantity is not resetting
     }
 
+    function handleConsoleSubmit(v : string) {
+      try {
+        const new_die = new Die(v)
+        die.value = new_die
+        console_error.value = ''
+        bigButtonClick()   
+      }
+      catch {
+        console_error.value = "Invalid dice format. Try something like 3d6."
+      }
+      console.log('handle console submit: ' + v)
+    }
+
     onKeyStroke([' ', 'Enter'], (e) => {
-      e.preventDefault();
-      bigButtonClick();
+      if (console_active.value) {
+        console.log('console open: no enter')
+        
+      }
+      else {
+        e.preventDefault();
+        bigButtonClick();
+      }
+      console.log("element ", useCurrentElement())
     });
 
     onKeyStroke('`', () => (console_active.value = true));
@@ -160,6 +174,7 @@ export default defineComponent({
       afrender,
       ttopen,
       console_active,
+      console_error,
       bigButtonClick,
       handleQuickButton,
       handleChipClick,
@@ -167,6 +182,7 @@ export default defineComponent({
       handleModeChange,
       handleReset,
       advancedUpdate,
+      handleConsoleSubmit,
     };
   },
 });
@@ -296,7 +312,7 @@ export default defineComponent({
     </div>
 
     <!-- Console -->
-    <DieConsole :active="console_active" @console-close="console_active=false"></DieConsole>
+    <DieConsole :active="console_active" :error="console_error" @console-close="console_active=false" @submit="handleConsoleSubmit"></DieConsole>
 
     <!-- FAB -->
     <q-page-sticky position="bottom-right" :offset="[20, 20]">

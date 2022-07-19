@@ -67,7 +67,7 @@ module.exports = configure(function (/* ctx */) {
 
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
 
-      // publicPath: '/',
+      publicPath: '/rapidly-random',
       // analyze: true,
       // env: {},
       // rawDefine: {}

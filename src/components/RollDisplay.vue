@@ -37,10 +37,7 @@ export default defineComponent({
       inLongPress.value = true;
       if (props.roll) {
         copyToClipboard(
-          displayValue.value +
-            (displayValue.value !== props.value.toString()
-              ? ' (' + props.value + ')'
-              : '')
+          MODE[props.roll.mode].displayMulti(props.roll.die.getThrow(), props.roll.die.max)  
         )
           .then(() => {
             $q.notify({

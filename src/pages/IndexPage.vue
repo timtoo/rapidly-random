@@ -155,7 +155,6 @@ export default defineComponent({
         e.preventDefault();
         bigButtonClick();
       }
-      console.log("element ", useCurrentElement())
     });
 
     onKeyStroke('`', () => (console_active.value = true));

@@ -57,33 +57,36 @@ class ModeBase {
       if (v >= max) v = v % max;
       console.log(v, ' ', max, ' ', mapping);
       return mapping[v];
+    } else {
+      return this.formatValue(v);
     }
-    return this.formatValue(v);
   }
 
   // override in case history string should be different from displayValue()
   historyValue(v: number, max?: number): string {
-    return this.displayValue(v, max)
+    return this.displayValue(v, max);
   }
 
-  // if given multiple values, how to display them? depends on this.summable 
+  // if given multiple values, how to display them? depends on this.summable
   displayMulti(v: number[], max?: number): string {
-    if (this.summable)
-      return this._displayMultiWithTotal(v, max)
-    return this._displayMultiValsOnly(v, max)
+    if (this.summable && v.length > 1) {
+      return this._displayMultiWithTotal(v, max);
+    } else {
+      return this._displayMultiValsOnly(v, max);
+    }
   }
 
   // return formated total, with individual values in brackets after
   _displayMultiWithTotal(v: number[], max?: number): string {
-    const displayTotal = this.displayValue(v.reduce((p,c) => p+c))
-    const displayVals = v.map((i) => this.displayValue(i, max))
-    return displayTotal + ' (' + displayVals.join(',') + ')'
+    const displayTotal = this.displayValue(v.reduce((p, c) => p + c));
+    const displayVals = v.map((i) => this.displayValue(i, max));
+    return displayTotal + ' (' + displayVals.join(',') + ')';
   }
 
   // alternate display without total
   _displayMultiValsOnly(v: number[], max?: number): string {
-    const displayVals = v.map((i) => this.displayValue(i, max))
-    return displayVals.join(',')
+    const displayVals = v.map((i) => this.displayValue(i, max));
+    return displayVals.join(',');
   }
 }
 
@@ -123,7 +126,7 @@ class ModeBinary extends ModeBase {
   }
 
   historyValue(v: number, max: number): string {
-    return 'b' + this.displayValue(v, max)
+    return 'b' + this.displayValue(v, max);
   }
 }
 
@@ -158,7 +161,7 @@ class ModeHex extends ModeBase {
   }
 
   historyValue(v: number, max: number): string {
-    return 'x' + this.displayValue(v, max)
+    return 'x' + this.displayValue(v, max);
   }
 }
 
@@ -179,7 +182,6 @@ class ModeYesNo extends ModeBase {
   };
   quick = [2, 3, 4, 5];
   default_max = 2;
-
 }
 
 class ModeNote extends ModeBase {
@@ -197,17 +199,17 @@ class ModeNote extends ModeBase {
     [7]: ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
     [12]: [
       'A',
-      'A&#x266f/B&#x266d;',
+      'A♯/B♭',
       'B',
       'C',
-      'C&#x266f/D&#x266d;',
+      'C♯/D♭',
       'D',
-      'D&#x266f/E&#x266d;',
+      'D♯/E♭',
       'E',
       'F',
-      'F&#x266f/G&#x266d;',
+      'F♯/G♭',
       'G',
-      'G&#x266f/A&#x266d;',
+      'G♯/A♭',
     ],
   };
   quick = [7, 12];
